@@ -162,6 +162,35 @@ function scanString(str, path) {
 }
 
 /**
+ * Exported scrubber for use outside of the Express middleware chain (e.g., ASR transcripts).
+ * It runs the same redaction rules but ignores high-confidence rejection logic, favoring
+ * total redaction for transcripts since we want to recover whatever non-PII text remains.
+ * @param {string} text 
+ * @returns {string} 
+ */
+export function scrubText(text) {
+  if (!text || typeof text !== 'string') return text;
+  
+  let value = text;
+
+  // Step 1: Aadhaar candidate detection → redact everything (no hard rejection in transcript)
+  const aadhaarMatches = [...value.matchAll(PATTERNS.AADHAAR_CANDIDATE)];
+  for (const match of aadhaarMatches) {
+    value = value.replace(match[0], '[REDACTED_NUM]');
+  }
+
+  // Step 2, 3, 4
+  value = value.replace(PATTERNS.PHONE, '[REDACTED_PHONE]');
+  value = value.replace(PATTERNS.EMAIL, '[REDACTED_EMAIL]');
+  value = value.replace(PATTERNS.PAN, '[REDACTED_PAN]');
+
+  return value;
+}
+
+export { scanString };
+
+
+/**
  * Express middleware: PII Firewall.
  * Must be registered at position 3 in the middleware chain (see ARCHITECTURE.md §6).
  *

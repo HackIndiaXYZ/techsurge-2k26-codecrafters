@@ -41,6 +41,34 @@
 - **Renamed endpoint**: `GET /api/v1/insights/repeat-offenders` → `GET /api/v1/insights/recurring-failures`.
 - **Demo script stat removed**: Unverified "94,030" statistic replaced with factual, source-neutral problem framing.
 
+## [0.4.0] — 2026-09-18 — Dealer PWA Core Form UI & Offline Queue
+### Added
+- `apps/dealer-pwa/src/store/useSessionStore.js`: Zustand state management for non-PII UI logic.
+- `apps/dealer-pwa/src/hooks/useOfflineQueue.js`: Resilient localStorage offline queuing system.
+- `apps/dealer-pwa/src/components/FailurePicker.jsx`: Mobile-first form capturing structured failure states per the `causeTaxonomy`.
+- `apps/dealer-pwa/src/components/GuidanceCard.jsx`: Presents deterministic guidance securely, prominently displaying rule verification status.
+- UI translated comprehensively across English, Hindi, and Telugu using local i18n JSONs.
+- Stringent PII constraints observed: No fields for Aadhaar, Name, Phone. Explicit privacy text included in UI.
+- Built-in graceful degradation ensuring app remains usable if API fails or device loses connectivity.
+### Test results
+- API Backend Tests run automatically post-PWA updates: 56/56 passing.
+- Dealer PWA Vite build completes in under 500ms without warnings.
+
+## [0.5.0] — 2026-09-18 — Bounded AI Voice Diagnosis
+### Added
+- `services/api/src/ai/classifier.js`: Gemini 2.5 Flash strictly configured to output JSON restricted to the `causeTaxonomy`.
+- `services/api/src/middleware/piiFirewall.js`: Exported `scrubText` to strip PII from ASR transcripts *before* they hit the LLM.
+- `services/api/src/controllers/diagnose.controller.js`: Implemented `handleVoiceDiagnosis` which enforces the `transcript -> scrub -> classify -> deterministic engine` flow.
+- `apps/dealer-pwa/src/components/VoiceRecorder.jsx`: Web Speech API implementation for in-browser ASR (Telugu, Hindi, English).
+- Added backend tests guaranteeing AI bounding, PII scrubbing, and fallback safety.
+
+## [0.5.1] — 2026-09-18 — Architecture Fix (Gemini REST)
+### Changed
+- Refactored `classifier.js` to replace the `@google/generative-ai` SDK with native Node.js `fetch` REST integration.
+- This restores full compliance with the frozen ARCHITECTURE.md constraint ("Gemini 2.5 Flash REST").
+- Uninstalled the `@google/generative-ai` package from the `services/api` workspace.
+- No behavior change was intended at the classifier boundary.
+
 ### Status
 ARCHITECTURE.md is now considered **FROZEN v1.0**. No architecture changes may be made without explicit authorization.
 

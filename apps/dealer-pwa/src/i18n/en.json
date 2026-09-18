@@ -5,8 +5,7 @@
   "header.online": "Online",
   "header.offline": "Offline",
   "header.language": "Language",
-  "diagnosis.heading": "Authentication Failure",
-  "diagnosis.description": "Diagnose why authentication failed and find the applicable fallback procedure.",
-  "diagnosis.placeholder": "Diagnosis form coming soon",
-  "footer.note": "Prototype · Synthetic Data Only · No live UIDAI/ePoS integration"
+  "diagnosis.heading": "Why did the beneficiary transaction fail?",
+  "diagnosis.cta": "Get Guidance",
+  "footer.note": "Demo • Synthetic Data Only"
 }

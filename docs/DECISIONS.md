@@ -55,3 +55,8 @@ If `MONGODB_URI` is not provided or connection fails, the API does not crash. It
 
 ## ADR-018: Synthetic Jittered Geographic Clustering
 Synthetic events are generated around 3 specific district centroids (Kurnool, Anantapur, Kadapa) with randomized jitter. This ensures realistic "hotspot" density for the Officer Dashboard while mathematically preventing the generation of real specific addresses.
+## ADR-019: localStorage Offline Queue
+To guarantee the P0 demo path without over-engineering Service Workers, offline requests are queued in `localStorage`. Only structural data (never PII or audio) is queued, ensuring privacy while allowing resilience against connectivity drops in Fair Price Shops.
+
+## ADR-020: Bounded AI Classification & Deterministic Authority
+The AI (Gemini 2.5 Flash) is strictly bounded to classifying the failure cause from a scrubbed transcript. It NEVER determines the fallback steps, rule ID, or policy citations. The AI output is mapped back into the deterministic Rules Engine, preserving absolute predictability and zero-hallucination guarantees for the actual guidance provided to the dealer. Raw audio and raw transcripts are never persisted.

@@ -28,11 +28,11 @@
 | Gemini classifier           | 🔲 Not started       |       |
 | Bhashini integration        | 🔲 Not started       |       |
 | Form diagnosis endpoint     | ✅ Complete          | `POST /api/v1/diagnose/form` - Zod validated, 12 tests pass |
-| Voice diagnosis endpoint    | 🔲 Not started       |       |
+| Voice diagnosis endpoint    | ✅ Complete          | `POST /api/v1/diagnose/voice` - Classifier integrated safely |
 | Synthetic event seeding     | ✅ Complete          | ~2000 events seeded across 3 districts with jittered coords |
-| Dealer PWA (diagnosis UI)   | 🔲 Not started       |       |
+| Dealer PWA (diagnosis UI)   | ✅ Complete          | Offline queue via localStorage. Voice + Form UI. No PII collection. |
 | Officer Dashboard (analytics)| 🔲 Not started      |       |
-| Voice fallback              | 🔲 Not started       |       |
+| Voice fallback              | ✅ Complete          | Built-in Web Speech API integration in Dealer PWA |
 | Testing                     | ✅ Engine + PII done | E2E not started |
 | Deployment                  | 🔲 Not started       |       |
 

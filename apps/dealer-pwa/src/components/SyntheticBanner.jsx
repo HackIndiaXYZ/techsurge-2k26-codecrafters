@@ -4,8 +4,8 @@
  */
 export default function SyntheticBanner() {
   return (
-    <div className="w-full bg-amber-50 border-b border-amber-300 text-amber-800 text-xs text-center py-1.5 px-4 font-medium">
-      ⚠️ PROTOTYPE — Synthetic Data Only · No live UIDAI/ePoS integration · Human dealer remains responsible
+    <div className="bg-amber-100 text-amber-900 px-4 py-2 text-xs font-bold text-center border-b border-amber-200">
+      <span className="uppercase tracking-wider">Demo • Synthetic Data Only</span>
     </div>
   );
 }
