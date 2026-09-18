@@ -24,12 +24,12 @@
 | Rules engine tests          | ✅ 14/14 pass        | Includes LLM-free assertion, determinism, registry schema |
 | PII firewall tests          | ✅ 15/15 pass        | All 10 required + 5 extras |
 | Verhoeff tests              | ✅ 11/11 pass        | Valid, invalid checksum, malformed, spaces, length |
-| MongoDB persistence         | 🔲 Not started       |       |
+| MongoDB persistence         | ✅ Complete          | `FailureEvent` and `AuditLog` schemas (strict, no-PII). Connection fails gracefully. |
 | Gemini classifier           | 🔲 Not started       |       |
 | Bhashini integration        | 🔲 Not started       |       |
-| Form diagnosis endpoint     | 🔲 Not started       |       |
+| Form diagnosis endpoint     | ✅ Complete          | `POST /api/v1/diagnose/form` - Zod validated, 12 tests pass |
 | Voice diagnosis endpoint    | 🔲 Not started       |       |
-| Synthetic event seeding     | 🔲 Not started       |       |
+| Synthetic event seeding     | ✅ Complete          | ~2000 events seeded across 3 districts with jittered coords |
 | Dealer PWA (diagnosis UI)   | 🔲 Not started       |       |
 | Officer Dashboard (analytics)| 🔲 Not started      |       |
 | Voice fallback              | 🔲 Not started       |       |
@@ -69,10 +69,9 @@
 
 ## Next Recommended Task
 
-**Prompt 3 — Rule Engine + Verified Rule Registry + PII Firewall**
+**Prompt 5 — Dealer PWA UI + Gemini Classifier (Fallback Rephrasing)**
 
 Implement:
-- `services/api/src/engine/rulesEngine.js` (deterministic, zero LLM imports)
-- Rule Registry JSON with `verificationStatus` flags
-- `services/api/src/middleware/piiFirewall.js`
-- Corresponding unit tests
+- `services/api/src/ai/classifier.js` (classification only, strictly bound)
+- Connect classifier to `POST /api/v1/diagnose/voice` or integrate text/voice flow
+- Build Dealer PWA form UI and offline queue (React + Vite + Tailwind + Zustand)

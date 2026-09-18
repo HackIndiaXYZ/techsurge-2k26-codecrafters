@@ -1,11 +1,5 @@
 {
   "name": "@setu/shared",
   "version": "0.1.0",
-  "private": true,
-  "description": "Shared constants and cause taxonomy for the Setu monorepo",
-  "main": "constants.js",
-  "exports": {
-    "./constants": "./constants.js",
-    "./causeTaxonomy": "./causeTaxonomy.js"
-  }
+  "type": "module"
 }

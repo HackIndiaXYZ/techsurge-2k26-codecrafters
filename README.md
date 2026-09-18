@@ -10,82 +10,23 @@ Built for **Kalachakra 2K26 — Digital Public Services Track**, Problem Stateme
 
 ## Architecture Overview
 
-```mermaid
-flowchart TD
-    subgraph CLIENT["🖥️  Client Layer"]
-        PWA["Dealer PWA\nReact 18 · Vite 5 · Tailwind\nVoice · Form · Offline queue"]
-        DSO["Officer Dashboard\nReact 18 · Vite 5 · Tailwind\nLeaflet map · Recharts"]
-    end
-
-    subgraph VOICE["🎙️  Speech Layer  (Bhashini / Web Speech)"]
-        ASR["ASR\nBhashini Dhruva\nTelugu · Hindi"]
-        TTS["TTS\nBhashini ULCA\nRead guidance aloud"]
-    end
-
-    subgraph API["⚙️  Express API  (Node.js 20+)"]
-        direction TB
-        MW1["① helmet + cors"]
-        MW2["② JSON body parser"]
-        MW3["③ PII Firewall\npiiFirewall.js\nVerhoeff · redact · reject"]
-        MW4["④ Audit Logger"]
-        CTRL["⑤ Controller\ndiagnose.controller.js"]
-
-        subgraph AI_ZONE["🔒  LLM Quarantine Zone  /src/ai/"]
-            GEM["Gemini 2.5 Flash\nclassifier.js\nfree-text → cause enum\n⚠️ classification only"]
-        end
-
-        subgraph ENGINE["🔒  Deterministic Engine  /src/engine/"]
-            RE["rulesEngine.js\nPURE FUNCTION\nzero LLM imports"]
-            RJ["rules.json\nRule Registry\n8 fallback rules\ntrilingual en/hi/te"]
-            RS["ruleSchema.js\nZod validation\nfails-fast at boot"]
-        end
-
-        MW1 --> MW2 --> MW3 --> MW4 --> CTRL
-        CTRL -->|"voice / text input"| GEM
-        GEM -->|"structured cause enum"| RE
-        RE --- RJ
-        RS -.->|"validates at boot"| RJ
-        RE -->|"fallback procedure + steps"| CTRL
-    end
-
-    subgraph PERSIST["🗄️  Persistence  (MongoDB Atlas M0)"]
-        EV["FailureEvent\nno PII fields\nstrict:true"]
-        AL["AuditLog\nappend-only\nno payloads"]
-    end
-
-    subgraph DSO_LAYER["📊  Insights Layer"]
-        AGG["aggregationService.js\nk-anonymity: suppress count \u003c 5"]
-    end
-
-    PWA <-->|"HTTPS · POST /diagnose"| API
-    DSO <-->|"HTTPS · GET /insights"| API
-    PWA <--> ASR
-    CTRL -->|"guidance text"| TTS
-    TTS --> PWA
-    CTRL --> EV
-    CTRL --> AL
-    EV --> AGG
-    AGG --> DSO
-
-    style AI_ZONE fill:#fff8e1,stroke:#f59e0b,stroke-dasharray:4
-    style ENGINE fill:#e8f5e9,stroke:#22c55e,stroke-dasharray:4
-    style MW3 fill:#fee2e2,stroke:#ef4444
-    style CLIENT fill:#eff6ff,stroke:#3b82f6
-    style PERSIST fill:#f5f3ff,stroke:#8b5cf6
+```
+Dealer PWA / Officer Dashboard (React + Vite)
+              ↓
+        Express API (Node.js)
+              ↓
+        PII Firewall
+              ↓
+  Gemini Classifier (classification/rephrasing only)
+              ↓
+  Deterministic Rule Engine  ←  Verified Rule Registry
+              ↓
+          Guidance
+              ↓
+        MongoDB Atlas
 ```
 
-**Key invariants enforced by the diagram:**
-
-| Invariant | Where | What it means |
-|---|---|---|
-| **I1** — LLM never decides | `rulesEngine.js` (zero LLM imports) | Gemini only classifies input; the engine owns the decision |
-| **I2** — No raw PII | `piiFirewall.js` position ③ | Verhoeff-gated Aadhaar rejection; phone/email/PAN redaction |
-| **I3** — Every result cites the registry | `rules.json` + response shape | `ruleId`, `citation`, `verificationStatus` in every response |
-| **I4** — Human in the loop | No approval endpoints | UI says "Suggested next step" — dealer decides |
-| **I5** — No live UIDAI/ePoS | Synthetic data only | `SYNTHETIC DATA` badge always visible |
-| **I6** — k-anonymity | `aggregationService.js` | Map suppresses buckets where count < 5 |
-
-The **deterministic rule engine is the sole authority** for fallback decisions. The LLM is limited to classifying free-form input and rephrasing existing rule steps — it cannot determine entitlement, eligibility, fallback procedures, or government policy.
+The **deterministic rule engine is the sole authority** for fallback decisions. The LLM is limited to classifying free-form input and rephrasing existing rule steps. It cannot determine entitlement, eligibility, fallback procedures, or government policy.
 
 ---
 
@@ -180,22 +121,20 @@ curl http://localhost:3001/api/v1/health
 
 ## Current Implementation Status
 
-| Module | Status | Notes |
-|---|---|---|
-| Architecture freeze | ✅ Complete | `ARCHITECTURE.md` v1.0 frozen |
-| Monorepo scaffold | ✅ Complete | API, Dealer PWA, Officer Dashboard all build |
-| Rule Registry | ✅ Complete | 8 rules, Zod-validated at boot |
-| Deterministic rule engine | ✅ Complete | Pure function, 8-level precedence, 14/14 tests pass |
-| PII Firewall | ✅ Complete | Verhoeff + redaction + forbidden keys, 15/15 tests pass |
-| Form diagnosis endpoint | 🔲 Not started | `POST /api/v1/diagnose/form` |
-| Mongoose models | 🔲 Not started | `FailureEvent`, `AuditLog` |
-| Gemini classifier | 🔲 Not started | `/src/ai/classifier.js` |
-| Bhashini integration | 🔲 Not started | ASR + TTS |
-| Dealer PWA (diagnosis UI) | 🔲 Not started | |
-| Officer Dashboard (analytics) | 🔲 Not started | |
-| Voice fallback | 🔲 Not started | |
-| E2E tests | 🔲 Not started | |
-| Deployment | 🔲 Not started | Vercel + Render |
+| Module                  | Status        |
+|-------------------------|---------------|
+| Architecture freeze     | ✅ Complete    |
+| Monorepo scaffold       | 🔲 Not started |
+| Deterministic rule engine | 🔲 Not started |
+| PII firewall            | 🔲 Not started |
+| Form diagnosis (P0)     | 🔲 Not started |
+| Dealer PWA              | 🔲 Not started |
+| Officer dashboard       | 🔲 Not started |
+| Gemini classifier       | 🔲 Not started |
+| Bhashini integration    | 🔲 Not started |
+| Voice fallback          | 🔲 Not started |
+| Testing                 | 🔲 Not started |
+| Deployment              | 🔲 Not started |
 
 ---
 

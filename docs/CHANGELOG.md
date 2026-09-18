@@ -44,8 +44,20 @@
 ### Status
 ARCHITECTURE.md is now considered **FROZEN v1.0**. No architecture changes may be made without explicit authorization.
 
-
-
+## [0.3.0] — 2026-09-18 — Form Diagnosis API & Mongoose Models
+### Added
+- `services/api/src/config/env.js` and `db.js`: Zod-validated environment config and graceful MongoDB connection handling.
+- `services/api/src/models/FailureEvent.js` and `AuditLog.js`: Strict, no-PII schemas conforming exactly to the architecture. AuditLog is capped for append-only tracking.
+- `services/api/src/services/diagnosisService.js`: Orchestrates the deterministic flow, ensuring rulesEngine acts as the sole authority and logs results.
+- `services/api/src/controllers/diagnose.controller.js`: Zod-based input validation for `POST /api/v1/diagnose/form`.
+- `services/api/src/routes/diagnose.routes.js`: Wire-up of the form endpoint.
+- `services/api/scripts/seedSyntheticEvents.js`: Generates ~2000 entirely synthetic events (no real PII) across 3 geographic clusters (Kurnool, Anantapur, Kadapa) with jittered coordinates to support future dashboard visualizations.
+- `services/api/tests/diagnose.controller.test.js`: 13 tests covering valid/invalid form inputs, routing logic, verification status, and graceful DB failure handling.
+- `services/api/tests/models.test.js`: 3 tests guaranteeing strict schemas and zero PII fields.
+### Test results
+- Total: 56 tests, 56 pass, 0 fail.
+- API starts flawlessly without `MONGODB_URI`, demonstrating resilience.
+- PII Firewall correctly intercepts PII sent to the new `/diagnose/form` endpoint.
 ## [Unreleased] - 2026-09-18
 ### Changed
 - **ARCHITECTURE RECONCILIATION**: The previous architecture based on Next.js, TypeScript, and LocalStorage has been explicitly superseded by the final "Setu (सेतु)" architecture for the 24-hour hackathon. The new frozen stack uses React, Vite, Node.js, Express, and MongoDB Atlas. All historical documentation referring to Next.js and TypeScript is marked as superseded.

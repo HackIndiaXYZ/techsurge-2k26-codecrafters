@@ -49,3 +49,9 @@ The Verhoeff algorithm accepts approximately 1 in 10 random 12-digit numbers. Th
 
 ## ADR-016: subjectRef not implemented in Phase 3
 `subjectRef` (HMAC pseudonym) is optional per the frozen architecture. It is not built in Phase 3 because recurring-failure correlation is not required for the form-diagnosis endpoint. `pseudonymiser.js` stub remains. Will implement if recurring-failure feature requires it.
+
+## ADR-017: Graceful MongoDB Degradation
+If `MONGODB_URI` is not provided or connection fails, the API does not crash. It starts in degraded mode, skips persistence, but still fully executes the deterministic rules engine so the dealer is not blocked from receiving critical fallback guidance.
+
+## ADR-018: Synthetic Jittered Geographic Clustering
+Synthetic events are generated around 3 specific district centroids (Kurnool, Anantapur, Kadapa) with randomized jitter. This ensures realistic "hotspot" density for the Officer Dashboard while mathematically preventing the generation of real specific addresses.
