@@ -1,0 +1,345 @@
+[
+  {
+    "ruleId": "R-BIO-001",
+    "version": "1.0",
+    "causeMatch": ["BIOMETRIC_MISMATCH"],
+    "conditions": {
+      "attemptsAtLeast": 3,
+      "ageAtLeast": 65
+    },
+    "fallback": "FACE_AUTH",
+    "steps": {
+      "en": [
+        "Ask the beneficiary to wait calmly.",
+        "Select 'Face Authentication' on the ePoS device.",
+        "Position the beneficiary's face within the camera frame — ensure good lighting.",
+        "Complete the face authentication attempt.",
+        "If face authentication also fails, proceed to the Exception Register (see escalation path).",
+        "Do NOT turn the beneficiary away. Record this attempt in the daily register."
+      ],
+      "hi": [
+        "लाभार्थी को शांति से प्रतीक्षा करने के लिए कहें।",
+        "ePoS डिवाइस पर 'फेस ऑथेंटिकेशन' चुनें।",
+        "कैमरे के सामने लाभार्थी का चेहरा रखें — सुनिश्चित करें कि अच्छी रोशनी हो।",
+        "फेस ऑथेंटिकेशन का प्रयास पूरा करें।",
+        "यदि फेस ऑथेंटिकेशन भी विफल हो, तो अपवाद रजिस्टर का उपयोग करें (एस्केलेशन पथ देखें)।",
+        "लाभार्थी को वापस न करें। दैनिक रजिस्टर में इस प्रयास को दर्ज करें।"
+      ],
+      "te": [
+        "లబ్ధిదారుడిని ప్రశాంతంగా వేచి ఉండమని చెప్పండి.",
+        "ePoS పరికరంలో 'ముఖ ధృవీకరణ' ఎంచుకోండి.",
+        "మంచి వెలుతురు ఉన్న చోట లబ్ధిదారుడి ముఖాన్ని కెమెరా ముందు ఉంచండి.",
+        "ముఖ ధృవీకరణ ప్రయత్నాన్ని పూర్తి చేయండి.",
+        "ముఖ ధృవీకరణ కూడా విఫలమైతే, మినహాయింపు నమోదు పట్టీని ఉపయోగించండి (ఎస్కలేషన్ మార్గం చూడండి).",
+        "లబ్ధిదారుడిని వెనక్కు పంపవద్దు. రోజువారీ నమోదు పుస్తకంలో ఈ ప్రయత్నాన్ని నమోదు చేయండి."
+      ]
+    },
+    "citation": "Pending verification — see INTEGRATION_ROADMAP.md",
+    "sourceUrl": null,
+    "verificationStatus": "RULE_REQUIRES_VERIFICATION",
+    "verifiedAt": null,
+    "escalationPath": "R-BIO-003 if face auth unavailable; then R-ESC-000",
+    "active": true
+  },
+  {
+    "ruleId": "R-BIO-002",
+    "version": "1.0",
+    "causeMatch": ["BIOMETRIC_MISMATCH"],
+    "conditions": {
+      "attemptsAtLeast": 3,
+      "hasRegisteredMobile": true
+    },
+    "fallback": "OTP",
+    "steps": {
+      "en": [
+        "Ask the beneficiary to keep their registered mobile phone ready.",
+        "Select 'OTP Authentication' on the ePoS device.",
+        "An OTP will be sent to the beneficiary's Aadhaar-linked mobile number.",
+        "Enter the OTP on the ePoS device within the time limit.",
+        "If OTP is not received within 2 minutes, ask the beneficiary to check signal and retry once.",
+        "Do NOT turn the beneficiary away. Record this attempt in the daily register."
+      ],
+      "hi": [
+        "लाभार्थी से कहें कि वे अपना पंजीकृत मोबाइल फोन तैयार रखें।",
+        "ePoS डिवाइस पर 'OTP ऑथेंटिकेशन' चुनें।",
+        "लाभार्थी के आधार से जुड़े मोबाइल नंबर पर OTP भेजा जाएगा।",
+        "समय सीमा के भीतर ePoS डिवाइस पर OTP दर्ज करें।",
+        "यदि 2 मिनट में OTP न आए, लाभार्थी से सिग्नल जांचने और एक बार पुनः प्रयास करने को कहें।",
+        "लाभार्थी को वापस न करें। दैनिक रजिस्टर में इस प्रयास को दर्ज करें।"
+      ],
+      "te": [
+        "లబ్ధిదారుడికి నమోదు అయిన మొబైల్ ఫోన్ సిద్ధంగా ఉంచుకోమని చెప్పండి.",
+        "ePoS పరికరంలో 'OTP ధృవీకరణ' ఎంచుకోండి.",
+        "లబ్ధిదారుడి ఆధార్‌తో అనుసంధానించబడిన మొబైల్ నంబర్‌కు OTP వస్తుంది.",
+        "సమయ పరిమితిలోపు ePoS పరికరంలో OTP నమోదు చేయండి.",
+        "2 నిమిషాల్లో OTP రాకపోతే, సిగ్నల్ తనిఖీ చేసి మరోసారి ప్రయత్నించమని లబ్ధిదారుడికి చెప్పండి.",
+        "లబ్ధిదారుడిని వెనక్కు పంపవద్దు. రోజువారీ నమోదు పుస్తకంలో ఈ ప్రయత్నాన్ని నమోదు చేయండి."
+      ]
+    },
+    "citation": "Pending verification — see INTEGRATION_ROADMAP.md",
+    "sourceUrl": null,
+    "verificationStatus": "RULE_REQUIRES_VERIFICATION",
+    "verifiedAt": null,
+    "escalationPath": "R-BIO-003 if OTP unavailable; then R-ESC-000",
+    "active": true
+  },
+  {
+    "ruleId": "R-BIO-003",
+    "version": "1.0",
+    "causeMatch": ["BIOMETRIC_MISMATCH"],
+    "conditions": {
+      "attemptsAtLeast": 3,
+      "hasRegisteredMobile": false,
+      "faceAuthAvailable": false
+    },
+    "fallback": "EXCEPTION_REGISTER",
+    "steps": {
+      "en": [
+        "Inform the beneficiary that fingerprint authentication has not succeeded after multiple attempts.",
+        "Open the physical Exception Register maintained at the shop.",
+        "Record: date, shop code, beneficiary's ration card number (from the card — do NOT enter into this system), failure type 'Biometric Mismatch', number of attempts.",
+        "Issue the entitlement to the beneficiary as per the exception procedure.",
+        "Attest the entry with your signature.",
+        "Report this event to your Area Officer within 24 hours.",
+        "This system will log a synthetic event for the District Supply Officer's dashboard."
+      ],
+      "hi": [
+        "लाभार्थी को सूचित करें कि कई प्रयासों के बाद भी फिंगरप्रिंट ऑथेंटिकेशन सफल नहीं हुआ।",
+        "दुकान पर रखा भौतिक अपवाद रजिस्टर खोलें।",
+        "दर्ज करें: तारीख, शॉप कोड, लाभार्थी का राशन कार्ड नंबर (कार्ड से — इस सिस्टम में न डालें), विफलता प्रकार 'बायोमेट्रिक मिसमैच', प्रयासों की संख्या।",
+        "अपवाद प्रक्रिया के अनुसार लाभार्थी को अधिकार प्रदान करें।",
+        "अपने हस्ताक्षर से प्रविष्टि प्रमाणित करें।",
+        "24 घंटे के भीतर अपने क्षेत्र अधिकारी को यह घटना रिपोर्ट करें।",
+        "यह सिस्टम जिला आपूर्ति अधिकारी के डैशबोर्ड के लिए एक सिंथेटिक इवेंट लॉग करेगा।"
+      ],
+      "te": [
+        "పలు ప్రయత్నాల తర్వాత కూడా వేలిముద్ర ధృవీకరణ విజయవంతం కాలేదని లబ్ధిదారుడికి తెలియజేయండి.",
+        "దుకాణంలో ఉంచిన భౌతిక మినహాయింపు నమోదు పుస్తకాన్ని తెరవండి.",
+        "నమోదు చేయండి: తేదీ, దుకాణం కోడ్, లబ్ధిదారుడి రేషన్ కార్డు నంబర్ (కార్డు నుండి — ఈ వ్యవస్థలో నమోదు చేయవద్దు), విఫలత రకం 'బయోమెట్రిక్ వ్యత్యాసం', ప్రయత్నాల సంఖ్య.",
+        "మినహాయింపు విధానం ప్రకారం లబ్ధిదారుడికి హక్కును అందించండి.",
+        "మీ సంతకంతో నమోదును ధృవీకరించండి.",
+        "24 గంటల్లోపు మీ ఏరియా అధికారికి ఈ సంఘటనను నివేదించండి.",
+        "ఈ వ్యవస్థ జిల్లా సరఫరా అధికారి డ్యాష్‌బోర్డ్ కోసం సింథటిక్ ఈవెంట్‌ను నమోదు చేస్తుంది."
+      ]
+    },
+    "citation": "Pending verification — see INTEGRATION_ROADMAP.md",
+    "sourceUrl": null,
+    "verificationStatus": "RULE_REQUIRES_VERIFICATION",
+    "verifiedAt": null,
+    "escalationPath": "R-ESC-000",
+    "active": true
+  },
+  {
+    "ruleId": "R-BIO-004",
+    "version": "1.0",
+    "causeMatch": ["BIOMETRIC_QUALITY_POOR"],
+    "conditions": {},
+    "fallback": "CLEAN_RETRY",
+    "steps": {
+      "en": [
+        "Ask the beneficiary to wipe their finger thoroughly with a clean, dry cloth.",
+        "If the finger appears wet or sweaty, wait 30 seconds and wipe again.",
+        "If the finger has a wound or bandage, try a different finger on the same hand.",
+        "Ask the beneficiary to press the scanner with firm, even pressure — not too hard.",
+        "Retry the biometric scan. Attempt up to 2 more times.",
+        "If quality remains poor after 2 retries, proceed to Face Authentication (R-BIO-001 conditions apply)."
+      ],
+      "hi": [
+        "लाभार्थी से उंगली को साफ, सूखे कपड़े से अच्छी तरह पोंछने के लिए कहें।",
+        "यदि उंगली गीली या पसीने वाली लगे, 30 सेकंड प्रतीक्षा करें और फिर पोंछें।",
+        "यदि उंगली में घाव या पट्टी हो, उसी हाथ की दूसरी उंगली आज़माएं।",
+        "लाभार्थी से स्कैनर पर मजबूत, समान दबाव से दबाने को कहें — बहुत जोर से नहीं।",
+        "बायोमेट्रिक स्कैन फिर से करें। 2 और बार प्रयास करें।",
+        "2 पुनः प्रयासों के बाद भी गुणवत्ता खराब रहे, तो फेस ऑथेंटिकेशन पर जाएं (R-BIO-001 शर्तें लागू होती हैं)।"
+      ],
+      "te": [
+        "లబ్ధిదారుడికి వేలిని శుభ్రమైన, పొడి గుడ్డతో బాగా తుడవమని చెప్పండి.",
+        "వేలి తడిగా లేదా చెమటతో ఉంటే, 30 సెకన్లు వేచి మళ్ళీ తుడవండి.",
+        "వేలిపై గాయం లేదా కట్టు ఉంటే, అదే చేతిలోని వేరే వేలిని ప్రయత్నించండి.",
+        "లబ్ధిదారుడిని స్కానర్‌పై బాగా, సమాన ఒత్తిడితో నొక్కమని చెప్పండి — చాలా గట్టిగా కాదు.",
+        "బయోమెట్రిక్ స్కాన్ మళ్ళీ ప్రయత్నించండి. మరో 2 సార్లు ప్రయత్నించండి.",
+        "2 మళ్ళీ ప్రయత్నాల తర్వాత కూడా నాణ్యత తక్కువగా ఉంటే, ముఖ ధృవీకరణకు వెళ్ళండి (R-BIO-001 షరతులు వర్తిస్తాయి)."
+      ]
+    },
+    "citation": "Pending verification — see INTEGRATION_ROADMAP.md",
+    "sourceUrl": null,
+    "verificationStatus": "RULE_REQUIRES_VERIFICATION",
+    "verifiedAt": null,
+    "escalationPath": "R-BIO-001 after 2 retries fail",
+    "active": true
+  },
+  {
+    "ruleId": "R-CON-001",
+    "version": "1.0",
+    "causeMatch": ["CONNECTIVITY_FAILURE"],
+    "conditions": {},
+    "fallback": "OFFLINE_MODE",
+    "steps": {
+      "en": [
+        "Do NOT turn the beneficiary away. A connectivity failure is not the beneficiary's fault.",
+        "Check whether the ePoS device has a mobile data signal or Wi-Fi connection.",
+        "If signal is very weak, move the device closer to an open window or door.",
+        "Wait 5 minutes and retry the authentication.",
+        "If connectivity is still unavailable, use the ePoS device's offline/store-and-forward mode if available.",
+        "Record the failed attempt in the physical Exception Register with the reason 'Connectivity Failure'.",
+        "Inform the beneficiary of the next available date and time when connectivity is expected.",
+        "Report connectivity failure to your Area Officer so the DSO is aware."
+      ],
+      "hi": [
+        "लाभार्थी को वापस न करें। कनेक्टिविटी विफलता लाभार्थी की गलती नहीं है।",
+        "जांचें कि ePoS डिवाइस में मोबाइल डेटा सिग्नल या Wi-Fi कनेक्शन है या नहीं।",
+        "यदि सिग्नल बहुत कमजोर हो, डिवाइस को खिड़की या दरवाजे के पास ले जाएं।",
+        "5 मिनट प्रतीक्षा करें और प्रमाणीकरण पुनः प्रयास करें।",
+        "यदि कनेक्टिविटी अभी भी उपलब्ध नहीं है, तो उपलब्ध होने पर ePoS डिवाइस का ऑफलाइन/स्टोर-एंड-फॉर्वर्ड मोड उपयोग करें।",
+        "भौतिक अपवाद रजिस्टर में 'कनेक्टिविटी विफलता' कारण के साथ विफल प्रयास दर्ज करें।",
+        "लाभार्थी को अगली उपलब्ध तारीख और समय की जानकारी दें जब कनेक्टिविटी उपलब्ध हो।",
+        "अपने क्षेत्र अधिकारी को कनेक्टिविटी विफलता की रिपोर्ट करें ताकि DSO को जानकारी हो।"
+      ],
+      "te": [
+        "లబ్ధిదారుడిని వెనక్కు పంపవద్దు. కనెక్టివిటీ వైఫల్యం లబ్ధిదారుడి తప్పు కాదు.",
+        "ePoS పరికరంలో మొబైల్ డేటా సిగ్నల్ లేదా Wi-Fi కనెక్షన్ ఉందో లేదో తనిఖీ చేయండి.",
+        "సిగ్నల్ చాలా బలహీనంగా ఉంటే, పరికరాన్ని తెరిచిన కిటికీ లేదా తలుపు దగ్గరకు తీసుకెళ్ళండి.",
+        "5 నిమిషాలు వేచి ధృవీకరణను మళ్ళీ ప్రయత్నించండి.",
+        "కనెక్టివిటీ ఇంకా అందుబాటులో లేకుంటే, ePoS పరికరంలో ఆఫ్‌లైన్/స్టోర్-అండ్-ఫార్వర్డ్ మోడ్ ఉంటే దాన్ని ఉపయోగించండి.",
+        "భౌతిక మినహాయింపు నమోదు పుస్తకంలో 'కనెక్టివిటీ వైఫల్యం' కారణంతో విఫలమైన ప్రయత్నాన్ని నమోదు చేయండి.",
+        "కనెక్టివిటీ అందుబాటులో ఉండే తర్వాత తదుపరి తేదీ మరియు సమయాన్ని లబ్ధిదారుడికి తెలియజేయండి.",
+        "DSO అవగాహనలో ఉండేలా కనెక్టివిటీ వైఫల్యాన్ని మీ ఏరియా అధికారికి నివేదించండి."
+      ]
+    },
+    "citation": "Pending verification — see INTEGRATION_ROADMAP.md",
+    "sourceUrl": null,
+    "verificationStatus": "RULE_REQUIRES_VERIFICATION",
+    "verifiedAt": null,
+    "escalationPath": "R-ESC-000 if offline mode unavailable and connectivity does not restore",
+    "active": true
+  },
+  {
+    "ruleId": "R-DEV-001",
+    "version": "1.0",
+    "causeMatch": ["DEVICE_FAILURE"],
+    "conditions": {},
+    "fallback": "ALTERNATE_EPOS",
+    "steps": {
+      "en": [
+        "Note the ePoS device ID shown on the device or its label.",
+        "Attempt to restart the biometric scanner (unplug and replug if external).",
+        "If the device remains unresponsive, do NOT continue attempting authentication on a faulty device.",
+        "If a second ePoS device is available at this shop, switch to it.",
+        "If no backup device is available, direct the beneficiary to the nearest operational Fair Price Shop.",
+        "Record the device failure in the physical Exception Register with the device ID.",
+        "Report the device failure to your Area Officer immediately — this is required so the DSO can arrange repair/replacement."
+      ],
+      "hi": [
+        "डिवाइस या उसके लेबल पर दिखाई देने वाला ePoS डिवाइस ID नोट करें।",
+        "बायोमेट्रिक स्कैनर को पुनः प्रारंभ करने का प्रयास करें (यदि बाहरी है तो अनप्लग और फिर प्लग करें)।",
+        "यदि डिवाइस अनुत्तरदायी रहे, तो दोषपूर्ण डिवाइस पर प्रमाणीकरण का प्रयास जारी न रखें।",
+        "यदि इस दुकान पर दूसरा ePoS डिवाइस उपलब्ध है, तो उस पर स्विच करें।",
+        "यदि कोई बैकअप डिवाइस उपलब्ध नहीं है, तो लाभार्थी को निकटतम चालू उचित मूल्य दुकान पर भेजें।",
+        "डिवाइस ID के साथ भौतिक अपवाद रजिस्टर में डिवाइस विफलता दर्ज करें।",
+        "तुरंत अपने क्षेत्र अधिकारी को डिवाइस विफलता की रिपोर्ट करें — यह आवश्यक है ताकि DSO मरम्मत/प्रतिस्थापन की व्यवस्था कर सके।"
+      ],
+      "te": [
+        "పరికరంపై లేదా దాని లేబుల్‌పై చూపించే ePoS పరికరం IDని నోట్ చేసుకోండి.",
+        "బయోమెట్రిక్ స్కానర్‌ను మళ్ళీ ప్రారంభించడానికి ప్రయత్నించండి (బాహ్యంగా ఉంటే అన్‌ప్లగ్ చేసి మళ్ళీ ప్లగ్ చేయండి).",
+        "పరికరం స్పందించకపోతే, లోపభూయిష్ట పరికరంలో ధృవీకరణ ప్రయత్నాలు కొనసాగించవద్దు.",
+        "ఈ దుకాణంలో రెండవ ePoS పరికరం అందుబాటులో ఉంటే, దానికి మారండి.",
+        "బ్యాకప్ పరికరం అందుబాటులో లేకుంటే, లబ్ధిదారుడిని సమీపంలోని పని చేస్తున్న న్యాయ ధర దుకాణానికి నిర్దేశించండి.",
+        "పరికరం IDతో భౌతిక మినహాయింపు నమోదు పుస్తకంలో పరికరం వైఫల్యాన్ని నమోదు చేయండి.",
+        "వెంటనే మీ ఏరియా అధికారికి పరికరం వైఫల్యాన్ని నివేదించండి — DSO మరమ్మతు/భర్తీ ఏర్పాటు చేయగలిగేలా ఇది అవసరం."
+      ]
+    },
+    "citation": "Pending verification — see INTEGRATION_ROADMAP.md",
+    "sourceUrl": null,
+    "verificationStatus": "RULE_REQUIRES_VERIFICATION",
+    "verifiedAt": null,
+    "escalationPath": "R-ESC-000",
+    "active": true
+  },
+  {
+    "ruleId": "R-SEED-001",
+    "version": "1.0",
+    "causeMatch": ["SEEDING_NOT_DONE", "DEMOGRAPHIC_MISMATCH"],
+    "conditions": {},
+    "fallback": "SEEDING_REFERRAL",
+    "steps": {
+      "en": [
+        "Inform the beneficiary that their Aadhaar has not been linked (seeded) to their ration card.",
+        "Do NOT deny the entitlement for this cycle without consulting your Area Officer.",
+        "Record the case in the physical Exception Register with the reason 'Seeding Not Done'.",
+        "Direct the beneficiary to the nearest Aadhaar Seeding Camp or MeeSeva / CSC centre to complete seeding.",
+        "Inform the beneficiary of the procedure: they will need their Aadhaar card and ration card.",
+        "Consult your Area Officer about whether to issue the entitlement under exception for this cycle.",
+        "This system will log a synthetic event for the District Supply Officer's dashboard."
+      ],
+      "hi": [
+        "लाभार्थी को सूचित करें कि उनका आधार उनके राशन कार्ड से लिंक (सीडिंग) नहीं हुआ है।",
+        "अपने क्षेत्र अधिकारी से परामर्श किए बिना इस चक्र के लिए अधिकार से इनकार न करें।",
+        "भौतिक अपवाद रजिस्टर में 'सीडिंग नहीं हुई' कारण के साथ मामला दर्ज करें।",
+        "लाभार्थी को सीडिंग पूरी करने के लिए निकटतम आधार सीडिंग शिविर या मीसेवा / CSC केंद्र पर भेजें।",
+        "लाभार्थी को प्रक्रिया बताएं: उन्हें अपना आधार कार्ड और राशन कार्ड लाना होगा।",
+        "इस चक्र के लिए अपवाद के तहत अधिकार जारी करने के बारे में अपने क्षेत्र अधिकारी से परामर्श करें।",
+        "यह सिस्टम जिला आपूर्ति अधिकारी के डैशबोर्ड के लिए एक सिंथेटिक इवेंट लॉग करेगा।"
+      ],
+      "te": [
+        "లబ్ధిదారుడి ఆధార్ వారి రేషన్ కార్డుతో అనుసంధానించబడలేదు (సీడింగ్) అని తెలియజేయండి.",
+        "మీ ఏరియా అధికారిని సంప్రదించకుండా ఈ చక్రానికి హక్కును తిరస్కరించవద్దు.",
+        "భౌతిక మినహాయింపు నమోదు పుస్తకంలో 'సీడింగ్ చేయలేదు' కారణంతో కేసును నమోదు చేయండి.",
+        "సీడింగ్ పూర్తి చేయడానికి లబ్ధిదారుడిని సమీపంలోని ఆధార్ సీడింగ్ శిబిరం లేదా మీసేవ / CSC కేంద్రానికి నిర్దేశించండి.",
+        "లబ్ధిదారుడికి విధానాన్ని తెలియజేయండి: వారికి ఆధార్ కార్డు మరియు రేషన్ కార్డు అవసరం.",
+        "ఈ చక్రానికి మినహాయింపు కింద హక్కును జారీ చేయాలో వద్దో మీ ఏరియా అధికారిని సంప్రదించండి.",
+        "ఈ వ్యవస్థ జిల్లా సరఫరా అధికారి డ్యాష్‌బోర్డ్ కోసం సింథటిక్ ఈవెంట్‌ను నమోదు చేస్తుంది."
+      ]
+    },
+    "citation": "Pending verification — see INTEGRATION_ROADMAP.md",
+    "sourceUrl": null,
+    "verificationStatus": "RULE_REQUIRES_VERIFICATION",
+    "verifiedAt": null,
+    "escalationPath": "R-ESC-000",
+    "active": true
+  },
+  {
+    "ruleId": "R-ESC-000",
+    "version": "1.0",
+    "causeMatch": ["UNKNOWN", "BENEFICIARY_ABSENT"],
+    "conditions": {},
+    "fallback": "ESCALATE",
+    "steps": {
+      "en": [
+        "This case could not be resolved with standard documented fallback procedures.",
+        "Do NOT turn the beneficiary away without providing them a reference.",
+        "Record the case in the physical Exception Register with all details you have.",
+        "Contact your District Supply Officer (DSO) immediately.",
+        "National PDS Helpline: 1967",
+        "Toll-free helpline: 1800-425-2977",
+        "Advise the beneficiary to retain any receipts or documents related to this visit.",
+        "This system will log a synthetic event for monitoring."
+      ],
+      "hi": [
+        "इस मामले को मानक दस्तावेज़ीकृत फॉलबैक प्रक्रियाओं से हल नहीं किया जा सका।",
+        "लाभार्थी को बिना संदर्भ दिए वापस न करें।",
+        "भौतिक अपवाद रजिस्टर में उपलब्ध सभी विवरणों के साथ मामला दर्ज करें।",
+        "तुरंत अपने जिला आपूर्ति अधिकारी (DSO) से संपर्क करें।",
+        "राष्ट्रीय PDS हेल्पलाइन: 1967",
+        "टोल-फ्री हेल्पलाइन: 1800-425-2977",
+        "लाभार्थी को इस दौरे से संबंधित कोई भी रसीद या दस्तावेज रखने की सलाह दें।",
+        "यह सिस्टम निगरानी के लिए एक सिंथेटिक इवेंट लॉग करेगा।"
+      ],
+      "te": [
+        "ఈ కేసును ప్రామాణిక నమోదైన ఫాల్‌బ్యాక్ విధానాలతో పరిష్కరించలేకపోయాం.",
+        "లబ్ధిదారుడికి సూచన ఇవ్వకుండా వెనక్కు పంపవద్దు.",
+        "మీకు ఉన్న అన్ని వివరాలతో భౌతిక మినహాయింపు నమోదు పుస్తకంలో కేసును నమోదు చేయండి.",
+        "వెంటనే మీ జిల్లా సరఫరా అధికారి (DSO)ని సంప్రదించండి.",
+        "జాతీయ PDS హెల్ప్‌లైన్: 1967",
+        "టోల్-ఫ్రీ హెల్ప్‌లైన్: 1800-425-2977",
+        "ఈ సందర్శనకు సంబంధించిన రసీదులు లేదా పత్రాలు ఉంచుకోమని లబ్ధిదారుడికి సూచించండి.",
+        "ఈ వ్యవస్థ పర్యవేక్షణ కోసం సింథటిక్ ఈవెంట్‌ను నమోదు చేస్తుంది."
+      ]
+    },
+    "citation": "PDS helpline numbers sourced from food.gov.in public information. Escalation procedure pending verification — see INTEGRATION_ROADMAP.md",
+    "sourceUrl": "https://dfpd.gov.in",
+    "verificationStatus": "RULE_REQUIRES_VERIFICATION",
+    "verifiedAt": null,
+    "escalationPath": "DSO + National Helpline 1967",
+    "active": true
+  }
+]

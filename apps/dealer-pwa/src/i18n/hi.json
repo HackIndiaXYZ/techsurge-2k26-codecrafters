@@ -1,0 +1,12 @@
+{
+  "app.title": "सेतु — डीलर सहायक",
+  "app.subtitle": "अंतिम कदम",
+  "banner.prototype": "प्रोटोटाइप — केवल काल्पनिक डेटा · कोई लाइव UIDAI/ePoS एकीकरण नहीं",
+  "header.online": "ऑनलाइन",
+  "header.offline": "ऑफलाइन",
+  "header.language": "भाषा",
+  "diagnosis.heading": "प्रमाणीकरण विफलता",
+  "diagnosis.description": "पता लगाएं कि प्रमाणीकरण क्यों विफल हुआ और लागू फॉलबैक प्रक्रिया खोजें।",
+  "diagnosis.placeholder": "निदान फॉर्म जल्द आएगा",
+  "footer.note": "प्रोटोटाइप · केवल काल्पनिक डेटा · कोई लाइव UIDAI/ePoS एकीकरण नहीं"
+}

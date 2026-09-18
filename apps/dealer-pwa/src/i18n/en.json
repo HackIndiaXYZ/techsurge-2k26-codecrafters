@@ -1,0 +1,12 @@
+{
+  "app.title": "Setu — Dealer Assistant",
+  "app.subtitle": "The Last Inch",
+  "banner.prototype": "PROTOTYPE — Synthetic Data Only · No live UIDAI/ePoS integration",
+  "header.online": "Online",
+  "header.offline": "Offline",
+  "header.language": "Language",
+  "diagnosis.heading": "Authentication Failure",
+  "diagnosis.description": "Diagnose why authentication failed and find the applicable fallback procedure.",
+  "diagnosis.placeholder": "Diagnosis form coming soon",
+  "footer.note": "Prototype · Synthetic Data Only · No live UIDAI/ePoS integration"
+}

@@ -1,0 +1,26 @@
+{
+  "name": "setu",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Setu (सेतु) — Last-mile PDS authentication failure resolution prototype",
+  "workspaces": [
+    "apps/dealer-pwa",
+    "apps/officer-dashboard",
+    "services/api",
+    "packages/shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:dealer\" \"npm run dev:dashboard\"",
+    "dev:dealer": "npm run dev --workspace=apps/dealer-pwa",
+    "dev:dashboard": "npm run dev --workspace=apps/officer-dashboard",
+    "dev:api": "npm run dev --workspace=services/api",
+    "build": "npm run build --workspace=apps/dealer-pwa && npm run build --workspace=apps/officer-dashboard",
+    "test": "echo \"No tests configured yet\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
