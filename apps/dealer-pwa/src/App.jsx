@@ -25,7 +25,12 @@ export default function App() {
   const t = translations[language] || translations.en;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 font-sans">
+    <div className="min-h-screen flex flex-col bg-gray-50 font-sans relative">
+      <div className="absolute top-0 right-0 m-2 z-50">
+        <span className="bg-fuchsia-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow animate-pulse uppercase tracking-wider">
+          Demo Mode
+        </span>
+      </div>
       <SyntheticBanner />
       <OfflineBanner />
       <Header translations={t} />
@@ -57,6 +62,33 @@ export default function App() {
             >
               Use Voice Diagnosis instead
             </button>
+            <div className="mt-8 pt-4 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  // Direct bypass to the exact deterministic outcome required for the demo
+                  useSessionStore.setState({
+                    currentDiagnosis: {
+                      detectedCause: 'BIOMETRIC_MISMATCH',
+                      confidence: 0.95,
+                      ruleId: 'R-BIO-001',
+                      verificationStatus: 'Pending verification',
+                      citation: 'DFPD Circular No. 15-2/2017-ND-I, Para 4(b)',
+                      fallback: 'Face authentication (AadhaarFaceRD)',
+                      steps: [
+                        'Ask the beneficiary to retry once.',
+                        'If fingerprint authentication continues to fail, use face authentication if available.',
+                        'Complete the transaction through the available fallback procedure.',
+                        'Escalate if the fallback is unavailable.'
+                      ],
+                      escalationPath: 'Escalate to District Supply Officer + 1967 helpline.'
+                    }
+                  });
+                }}
+                className="w-full bg-fuchsia-100 text-fuchsia-700 hover:bg-fuchsia-200 font-bold py-3 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 border border-fuchsia-300"
+              >
+                ▶️ RUN DEMO SCENARIO
+              </button>
+            </div>
           </div>
         )}
       </main>

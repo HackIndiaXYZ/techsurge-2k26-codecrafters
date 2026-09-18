@@ -12,6 +12,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 import { piiFirewall } from './middleware/piiFirewall.js';
 import healthRouter from './routes/health.js';
 import diagnoseRouter from './routes/diagnose.routes.js';
+import insightsRouter from './routes/insights.routes.js';
 import { connectDB } from './config/db.js';
 
 const app = express();
@@ -28,6 +29,7 @@ app.use(piiFirewall);
 // ── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/v1', healthRouter);
 app.use('/api/v1/diagnose', diagnoseRouter);
+app.use('/api/v1/insights', insightsRouter);
 
 // ── Centralized Error Handler (must be last) ─────────────────────────────────
 app.use(errorHandler);
