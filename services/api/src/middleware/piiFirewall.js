@@ -47,6 +47,7 @@ import { verhoeffValidate } from './verhoeff.js';
 const FORBIDDEN_KEYS = new Set([
   'aadhaar', 'uid', 'name', 'phone', 'mobile',
   'address', 'biometric', 'fingerprint', 'photo',
+  'face', 'iris'
 ]);
 
 /**
@@ -75,21 +76,52 @@ function hashBody(bodyStr) {
 }
 
 /**
+ * Helper to allow structured biometric descriptors strictly for POST /api/v1/auth/biometric
+ * @param {import('express').Request} req
+ * @param {string} key
+ * @param {unknown} value
+ */
+function isAllowedStructuredBiometricKey(req, key, value) {
+  if (!req || (req.path !== '/api/v1/auth/biometric' && req.path !== '/api/v1/auth/reverify') || req.method !== 'POST') {
+    return false;
+  }
+  
+  const allowedKeys = ['fingerprint', 'face', 'iris'];
+  if (!allowedKeys.includes(key.toLowerCase())) {
+    return false;
+  }
+  
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+  
+  const allowedDescriptorFields = ['outcome', 'failureReason'];
+  const valueKeys = Object.keys(value);
+  
+  if (valueKeys.length === 0 || valueKeys.some(k => !allowedDescriptorFields.includes(k))) {
+    return false;
+  }
+  
+  return true;
+}
+
+/**
  * Recursively walks an object and applies the redaction/rejection logic
  * to every string value.
  *
  * @param {unknown} node - The value to inspect
  * @param {string} path - Dot-notation path to this node (for error reporting)
+ * @param {import('express').Request} req - The Express request object
  * @returns {{ rejected: boolean, field?: string, hint?: string, value?: unknown }}
  */
-function deepScan(node, path) {
+function deepScan(node, path, req) {
   if (typeof node === 'string') {
     return scanString(node, path);
   }
 
   if (Array.isArray(node)) {
     for (let i = 0; i < node.length; i++) {
-      const result = deepScan(node[i], `${path}[${i}]`);
+      const result = deepScan(node[i], `${path}[${i}]`, req);
       if (result.rejected) return result;
       node[i] = result.value;
     }
@@ -100,14 +132,16 @@ function deepScan(node, path) {
     for (const key of Object.keys(node)) {
       // Check for forbidden key names (case-insensitive)
       if (FORBIDDEN_KEYS.has(key.toLowerCase())) {
-        return {
-          rejected: true,
-          field: `${path}.${key}`,
-          hint: `Field "${key}" must not be submitted to this system. This system does not collect or process PII.`,
-        };
+        if (!isAllowedStructuredBiometricKey(req, key, node[key])) {
+          return {
+            rejected: true,
+            field: `${path}.${key}`,
+            hint: `Field "${key}" must not be submitted to this system. This system does not collect or process PII.`,
+          };
+        }
       }
 
-      const result = deepScan(node[key], `${path}.${key}`);
+      const result = deepScan(node[key], `${path}.${key}`, req);
       if (result.rejected) return result;
       node[key] = result.value;
     }
@@ -203,7 +237,7 @@ export function piiFirewall(req, res, next) {
   const requestHash = hashBody(JSON.stringify(req.body ?? '') + JSON.stringify(req.query ?? ''));
 
   // Scan body
-  const bodyResult = deepScan(req.body, 'body');
+  const bodyResult = deepScan(req.body, 'body', req);
   if (bodyResult.rejected) {
     // Audit: record rejection reason and request hash — NEVER the value
     // (auditLogger is a separate middleware; we attach metadata to req for it)
@@ -220,7 +254,7 @@ export function piiFirewall(req, res, next) {
   req.body = bodyResult.value ?? req.body;
 
   // Scan query params
-  const queryResult = deepScan(req.query, 'query');
+  const queryResult = deepScan(req.query, 'query', req);
   if (queryResult.rejected) {
     req._piiRejection = {
       piiRejectionReason: queryResult.hint,
@@ -236,7 +270,7 @@ export function piiFirewall(req, res, next) {
 
   // Scan route params (read-only — we note but don't mutate Express's params object)
   if (req.params) {
-    const paramsResult = deepScan({ ...req.params }, 'params');
+    const paramsResult = deepScan({ ...req.params }, 'params', req);
     if (paramsResult.rejected) {
       req._piiRejection = {
         piiRejectionReason: paramsResult.hint,

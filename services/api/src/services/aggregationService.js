@@ -5,6 +5,8 @@
  * Strictly deterministic, operates only on existing FailureEvent data.
  */
 import { FailureEvent } from '../models/FailureEvent.js';
+import { ExceptionAuthorization } from '../models/ExceptionAuthorization.js';
+import { InvestigationCase } from '../models/InvestigationCase.js';
 import { FailureCause } from '../../../../packages/shared/causeTaxonomy.js';
 
 /**
@@ -24,15 +26,24 @@ function buildMatchStage(filters) {
 }
 
 /**
+ * Helper to build common match filters for V2 collections which use 'timestamp' or 'createdAt' differently.
+ */
+function buildV2MatchStage(filters, dateField = 'timestamp') {
+  const match = {};
+  if (filters.from || filters.to) {
+    match[dateField] = {};
+    if (filters.from) match[dateField].$gte = new Date(filters.from);
+    if (filters.to) match[dateField].$lte = new Date(filters.to);
+  }
+  return match;
+}
+
+/**
  * Returns geographic hotspots of failures, enforcing k-anonymity.
- * 
- * @param {Object} filters - state, district, from, to
- * @returns {Promise<{ buckets: Array, suppressedBuckets: number }>}
  */
 export async function getHotspots(filters = {}) {
   const matchStage = buildMatchStage(filters);
 
-  // Group by shopCode (which maps to a specific jittered geo location)
   const pipeline = [
     { $match: matchStage },
     {
@@ -75,9 +86,6 @@ export async function getHotspots(filters = {}) {
 
 /**
  * Returns a breakdown of failure causes across the filtered dataset.
- * 
- * @param {Object} filters - state, district, from, to
- * @returns {Promise<{ causes: Array }>}
  */
 export async function getCauses(filters = {}) {
   const matchStage = buildMatchStage(filters);
@@ -105,10 +113,6 @@ export async function getCauses(filters = {}) {
 
 /**
  * Returns shops with high volumes of authentication failures (recurring failures).
- * Suppresses shops with < 5 failures to adhere to k-anonymity.
- * 
- * @param {Object} filters - state, district, from, to
- * @returns {Promise<{ shops: Array, suppressedShops: number }>}
  */
 export async function getRecurringFailures(filters = {}) {
   const matchStage = buildMatchStage(filters);
@@ -144,9 +148,54 @@ export async function getRecurringFailures(filters = {}) {
     }
   }
 
-  // Only return top 50 to avoid massive tables
   return {
     shops: shops.slice(0, 50),
     suppressedShops
+  };
+}
+
+/**
+ * Returns aggregate summary metrics for the Officer Dashboard.
+ * Integrates data from FailureEvent, ExceptionAuthorization, and InvestigationCase.
+ */
+export async function getSummary(filters = {}) {
+  const matchStage = buildMatchStage(filters);
+  const v2MatchStageTimestamp = buildV2MatchStage(filters, 'timestamp');
+  const v2MatchStageCreatedAt = buildV2MatchStage(filters, 'createdAt');
+
+  // 1. Total Failures
+  const totalFailures = await FailureEvent.countDocuments(matchStage);
+
+  // 2. Top Cause
+  const causesPipeline = [
+    { $match: matchStage },
+    { $group: { _id: '$failureCause', count: { $sum: 1 } } },
+    { $sort: { count: -1 } },
+    { $limit: 1 }
+  ];
+  const topCauseResult = await FailureEvent.aggregate(causesPipeline);
+  const topCause = topCauseResult.length > 0 ? topCauseResult[0]._id : null;
+
+  // 3. Active Hotspots & Suppressed Buckets
+  const hotspotsData = await getHotspots(filters);
+  const activeHotspots = hotspotsData.buckets.length;
+  const suppressedBuckets = hotspotsData.suppressedBuckets;
+
+  // 4. Total Exceptions (from ExceptionAuthorization)
+  const totalExceptions = await ExceptionAuthorization.countDocuments(v2MatchStageTimestamp);
+
+  // 5. Open Investigations (from InvestigationCase where status is OPEN or UNDER_REVIEW)
+  const openInvestigations = await InvestigationCase.countDocuments({
+    ...v2MatchStageCreatedAt,
+    status: { $in: ['OPEN', 'UNDER_REVIEW'] }
+  });
+
+  return {
+    totalFailures,
+    topCause,
+    activeHotspots,
+    suppressedBuckets,
+    totalExceptions,
+    openInvestigations
   };
 }

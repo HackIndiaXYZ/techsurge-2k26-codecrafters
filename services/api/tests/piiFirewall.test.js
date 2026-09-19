@@ -267,3 +267,116 @@ test('Mixed body: valid candidate rejected even with other clean fields', () => 
   assert.equal(passed, false);
   assert.equal(status, 422);
 });
+
+// ── Phase 4A: Narrow Structured Biometric Exception Tests ────────────────────
+test('P4A-1. Existing forbidden fingerprint usage on unrelated endpoints remains rejected', () => {
+  const req = mockReq({
+    body: { fingerprint: { outcome: 'SUCCESS' } }
+  });
+  req.path = '/api/v1/diagnose/form';
+  req.method = 'POST';
+  
+  const { status, passed } = runFirewall(req);
+  assert.equal(passed, false);
+  assert.equal(status, 422);
+});
+
+test('P4A-2. Existing photo remains rejected everywhere', () => {
+  const req = mockReq({
+    body: { photo: { outcome: 'SUCCESS' } }
+  });
+  req.path = '/api/v1/auth/biometric';
+  req.method = 'POST';
+  
+  const { status, passed } = runFirewall(req);
+  assert.equal(passed, false);
+  assert.equal(status, 422);
+});
+
+test('P4A-3. POST /api/v1/auth/biometric with valid structured fingerprint/face/iris is allowed', () => {
+  const req = mockReq({
+    body: {
+      fingerprint: { outcome: 'SUCCESS' },
+      face: { outcome: 'FAILURE', failureReason: 'MISMATCH' },
+      iris: { outcome: 'UNAVAILABLE' }
+    }
+  });
+  req.path = '/api/v1/auth/biometric';
+  req.method = 'POST';
+  
+  const { passed } = runFirewall(req);
+  assert.equal(passed, true, 'Structured descriptors should pass on biometric auth endpoint');
+});
+
+test('P4A-4. Raw fingerprint string is rejected', () => {
+  const req = mockReq({
+    body: { fingerprint: "raw-template-string" }
+  });
+  req.path = '/api/v1/auth/biometric';
+  req.method = 'POST';
+  
+  const { status, passed } = runFirewall(req);
+  assert.equal(passed, false);
+  assert.equal(status, 422);
+});
+
+test('P4A-5. Raw face string is rejected', () => {
+  const req = mockReq({
+    body: { face: "raw-face-string" }
+  });
+  req.path = '/api/v1/auth/biometric';
+  req.method = 'POST';
+  
+  const { status, passed } = runFirewall(req);
+  assert.equal(passed, false);
+  assert.equal(status, 422);
+});
+
+test('P4A-6. Raw iris string is rejected', () => {
+  const req = mockReq({
+    body: { iris: "raw-iris-string" }
+  });
+  req.path = '/api/v1/auth/biometric';
+  req.method = 'POST';
+  
+  const { status, passed } = runFirewall(req);
+  assert.equal(passed, false);
+  assert.equal(status, 422);
+});
+
+test('P4A-7. Base64/image-like biometric payload is rejected', () => {
+  const req = mockReq({
+    body: { face: { outcome: 'SUCCESS', image: 'base64string==' } }
+  });
+  req.path = '/api/v1/auth/biometric';
+  req.method = 'POST';
+  
+  const { status, passed } = runFirewall(req);
+  assert.equal(passed, false, 'Nested unknown fields must reject the struct exception');
+  assert.equal(status, 422);
+});
+
+test('P4A-8. Nested aadhaar is rejected', () => {
+  const req = mockReq({
+    body: { fingerprint: { outcome: 'SUCCESS', aadhaar: '123456789012' } }
+  });
+  req.path = '/api/v1/auth/biometric';
+  req.method = 'POST';
+  
+  const { status, passed } = runFirewall(req);
+  assert.equal(passed, false);
+  assert.equal(status, 422);
+});
+
+test('P4A-9. Nested mobile is rejected', () => {
+  const req = mockReq({
+    body: { fingerprint: { outcome: 'SUCCESS', mobile: '9876543210' } }
+  });
+  req.path = '/api/v1/auth/biometric';
+  req.method = 'POST';
+  
+  const { status, passed } = runFirewall(req);
+  assert.equal(passed, false);
+  assert.equal(status, 422);
+});
+

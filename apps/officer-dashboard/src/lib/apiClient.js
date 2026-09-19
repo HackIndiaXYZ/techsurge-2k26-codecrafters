@@ -32,11 +32,13 @@ const DEMO_DATA = {
   }
 };
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 export const apiClient = {
   getHotspots: async (filters = {}) => {
     try {
       const params = new URLSearchParams(filters).toString();
-      const res = await fetch(`/api/v1/insights/hotspots?${params}`);
+      const res = await fetch(`${API_BASE}/api/v1/insights/hotspots?${params}`);
       if (!res.ok) throw new Error('Backend failed');
       return await res.json();
     } catch (e) {
@@ -48,7 +50,7 @@ export const apiClient = {
   getCauses: async (filters = {}) => {
     try {
       const params = new URLSearchParams(filters).toString();
-      const res = await fetch(`/api/v1/insights/causes?${params}`);
+      const res = await fetch(`${API_BASE}/api/v1/insights/causes?${params}`);
       if (!res.ok) throw new Error('Backend failed');
       return await res.json();
     } catch (e) {
@@ -60,12 +62,60 @@ export const apiClient = {
   getRecurringFailures: async (filters = {}) => {
     try {
       const params = new URLSearchParams(filters).toString();
-      const res = await fetch(`/api/v1/insights/recurring-failures?${params}`);
+      const res = await fetch(`${API_BASE}/api/v1/insights/recurring-failures?${params}`);
       if (!res.ok) throw new Error('Backend failed');
       return await res.json();
     } catch (e) {
       console.warn("Using synthetic demo data for recurring failures");
       return DEMO_DATA.recurringFailures;
+    }
+  },
+
+  getInvestigations: async (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.status) params.append('status', filters.status);
+    if (filters.transactionRef) params.append('transactionRef', filters.transactionRef);
+    
+    const url = `${API_BASE}/api/v1/investigations${params.toString() ? '?' + params.toString() : ''}`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      if (res.status === 404) throw new Error('Investigation case could not be found.');
+      throw new Error('Unable to connect to the backend.');
+    }
+    return res.json();
+  },
+
+  updateInvestigation: async (caseId, action) => {
+    const res = await fetch(`${API_BASE}/api/v1/investigations/${caseId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action })
+    });
+    
+    if (!res.ok) {
+      if (res.status === 404) throw new Error('Investigation case could not be found.');
+      if (res.status === 400 || res.status === 409) throw new Error('That workflow transition is not currently available.');
+      throw new Error('Unable to update this case. Please try again.');
+    }
+    return res.json();
+  },
+
+  getSummary: async (filters = {}) => {
+    try {
+      const params = new URLSearchParams(filters).toString();
+      const res = await fetch(`${API_BASE}/api/v1/insights/summary?${params}`);
+      if (!res.ok) throw new Error('Backend failed');
+      return await res.json();
+    } catch (e) {
+      console.warn("Using synthetic demo data for summary");
+      return {
+        totalFailures: 2000,
+        topCause: 'BIOMETRIC_MISMATCH',
+        activeHotspots: 8,
+        suppressedBuckets: 12,
+        totalExceptions: 6,
+        openInvestigations: 3
+      };
     }
   }
 };

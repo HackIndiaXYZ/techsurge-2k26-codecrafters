@@ -10,6 +10,7 @@ import HotspotMap from './components/HotspotMap';
 import CauseBreakdown from './components/CauseBreakdown';
 import RecurringFailureTable from './components/RecurringFailureTable';
 import AnonymityNotice from './components/AnonymityNotice';
+import InvestigationSection from './components/InvestigationSection';
 import { apiClient } from './lib/apiClient';
 
 export default function App() {
@@ -18,24 +19,30 @@ export default function App() {
   const [dashboardData, setDashboardData] = useState({
     hotspots: null,
     causes: null,
-    recurringFailures: null
+    recurringFailures: null,
+    summary: null
   });
+  
+  // Predictive Entitlement Demo State
+  const [tokenStatus, setTokenStatus] = useState('ACTIVE');
 
   useEffect(() => {
     async function loadData() {
       try {
         setLoading(true);
         // Execute fetches concurrently
-        const [hotspotsData, causesData, failuresData] = await Promise.all([
+        const [hotspotsData, causesData, failuresData, summaryData] = await Promise.all([
           apiClient.getHotspots(),
           apiClient.getCauses(),
-          apiClient.getRecurringFailures()
+          apiClient.getRecurringFailures(),
+          apiClient.getSummary()
         ]);
         
         setDashboardData({
           hotspots: hotspotsData,
           causes: causesData,
-          recurringFailures: failuresData
+          recurringFailures: failuresData,
+          summary: summaryData
         });
       } catch (err) {
         console.error("Dashboard failed to load:", err);
@@ -49,8 +56,7 @@ export default function App() {
   }, []);
 
   // Calculate total suppressed buckets across endpoints (simplification for notice)
-  const totalSuppressed = dashboardData.hotspots?.suppressedBuckets || 
-                          dashboardData.recurringFailures?.suppressedShops || 0;
+  const totalSuppressed = dashboardData.summary?.suppressedBuckets || 0;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -97,25 +103,128 @@ export default function App() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm text-center">
                 <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Total Failures</p>
-                <p className="text-2xl font-bold text-indigo-700 mt-1">2,000</p>
-                <p className="text-[10px] text-gray-400 mt-1">Synthetic demo data</p>
+                <p className="text-2xl font-bold text-indigo-700 mt-1">{dashboardData.summary?.totalFailures ?? 0}</p>
+                <p className="text-[10px] text-gray-400 mt-1">Synthetic data</p>
               </div>
               <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm text-center">
                 <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Top Failure Cause</p>
-                <p className="text-lg font-bold text-indigo-700 mt-1 leading-tight py-1">Biometric mismatch</p>
-                <p className="text-[10px] text-gray-400 mt-1">Synthetic demo data</p>
+                <p className="text-lg font-bold text-indigo-700 mt-1 leading-tight py-1">{dashboardData.summary?.topCause?.replace(/_/g, ' ') || 'None'}</p>
+                <p className="text-[10px] text-gray-400 mt-1">Synthetic data</p>
               </div>
               <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm text-center">
                 <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Active Hotspots</p>
-                <p className="text-2xl font-bold text-indigo-700 mt-1">8</p>
-                <p className="text-[10px] text-gray-400 mt-1">Synthetic demo data</p>
+                <p className="text-2xl font-bold text-indigo-700 mt-1">{dashboardData.summary?.activeHotspots ?? 0}</p>
+                <p className="text-[10px] text-gray-400 mt-1">Synthetic data</p>
               </div>
               <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm text-center">
                 <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Suppressed Buckets</p>
-                <p className="text-2xl font-bold text-amber-600 mt-1">12</p>
-                <p className="text-[10px] text-gray-400 mt-1">Synthetic demo data</p>
+                <p className="text-2xl font-bold text-amber-600 mt-1">{dashboardData.summary?.suppressedBuckets ?? 0}</p>
+                <p className="text-[10px] text-gray-400 mt-1">Synthetic data</p>
               </div>
             </div>
+
+            {/* Predictive Entitlement Engine Section */}
+            <section className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 relative mb-6">
+              <span className="absolute top-4 right-4 text-[10px] bg-amber-100 text-amber-800 px-2 py-1 rounded font-bold uppercase tracking-wider">Synthetic Demo Data</span>
+              <h2 className="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
+                <span className="text-emerald-500">⚡</span> Predictive Entitlement Engine
+              </h2>
+              <p className="text-xs text-gray-500 mb-6">
+                Monitoring of offline continuity Trust Tokens and automated asynchronous reconciliation.
+              </p>
+              
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                  <p className="text-xs text-gray-500 uppercase font-semibold">Trust Tokens Active</p>
+                  <p className="text-xl font-bold text-gray-900 mt-1">1,842</p>
+                </div>
+                <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                  <p className="text-xs text-gray-500 uppercase font-semibold">Offline Transactions</p>
+                  <p className="text-xl font-bold text-gray-900 mt-1">127</p>
+                </div>
+                <div className="bg-emerald-50 p-3 rounded border border-emerald-200">
+                  <p className="text-xs text-emerald-800 uppercase font-semibold">Successfully Reconciled</p>
+                  <p className="text-xl font-bold text-emerald-700 mt-1">124</p>
+                </div>
+                <div className="bg-amber-50 p-3 rounded border border-amber-200">
+                  <p className="text-xs text-amber-800 uppercase font-semibold">Pending Reconciliation</p>
+                  <p className="text-xl font-bold text-amber-700 mt-1">3</p>
+                </div>
+                <div className="bg-red-50 p-3 rounded border border-red-200">
+                  <p className="text-xs text-red-800 uppercase font-semibold">Flagged</p>
+                  <p className="text-xl font-bold text-red-700 mt-1">1</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-3">Trust Token Activity (Current Cycle)</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="font-medium text-gray-700">Active (1,842)</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="bg-gray-400 h-2 rounded-full" style={{ width: '100%' }}></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="font-medium text-gray-700">Used Offline (127)</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="bg-blue-500 h-2 rounded-full" style={{ width: '7%' }}></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="font-medium text-gray-700">Reconciled (124)</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '6.8%' }}></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="font-medium text-gray-700">Flagged (1)</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="bg-red-500 h-2 rounded-full" style={{ width: '0.1%' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className={`p-4 rounded-lg border ${tokenStatus === 'ACTIVE' ? 'bg-indigo-50 border-indigo-200' : 'bg-red-50 border-red-200'}`}>
+                    <h3 className="text-sm font-bold text-gray-800 mb-2">Trust Token Monitoring</h3>
+                    <div className="space-y-1 text-xs mb-4">
+                      <p className="flex justify-between"><span className="text-gray-600">Token:</span> <span className="font-mono font-bold text-gray-800">TT-DEMO-1842</span></p>
+                      <p className="flex justify-between"><span className="text-gray-600">Status:</span> <span className={`font-bold ${tokenStatus === 'ACTIVE' ? 'text-emerald-600' : 'text-red-600'}`}>{tokenStatus}</span></p>
+                      {tokenStatus === 'ACTIVE' ? (
+                        <>
+                          <p className="flex justify-between"><span className="text-gray-600">Last transaction:</span> <span>Today</span></p>
+                          <p className="flex justify-between"><span className="text-gray-600">Anomaly score:</span> <span className="text-emerald-600 font-bold">LOW</span></p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="flex justify-between"><span className="text-gray-600">Anomaly score:</span> <span className="text-red-600 font-bold">CRITICAL</span></p>
+                          <p className="flex justify-between mt-2 pt-2 border-t border-red-200"><span className="text-gray-800 font-bold">Next cycle:</span> <span className="text-red-700 font-bold">Live authentication required</span></p>
+                        </>
+                      )}
+                    </div>
+                    
+                    <button 
+                      onClick={() => setTokenStatus(tokenStatus === 'ACTIVE' ? 'REVOKED' : 'ACTIVE')}
+                      className={`w-full text-xs font-bold py-2 rounded transition border ${tokenStatus === 'ACTIVE' ? 'bg-white text-indigo-700 border-indigo-300 hover:bg-indigo-100' : 'bg-white text-red-700 border-red-300 hover:bg-red-100'}`}
+                    >
+                      {tokenStatus === 'ACTIVE' ? 'Simulate Anomaly' : 'Reset Token'}
+                    </button>
+                    <p className="text-[9px] text-gray-400 text-center mt-2">Demo simulation only</p>
+                  </div>
+                </div>
+              </div>
+            </section>
 
             {/* Hotspot Map Section */}
             <section className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 relative">
@@ -148,6 +257,9 @@ export default function App() {
                 <RecurringFailureTable data={dashboardData.recurringFailures?.shops} />
               </section>
             </div>
+
+            {/* Investigation Section */}
+            <InvestigationSection />
           </>
         )}
       </main>

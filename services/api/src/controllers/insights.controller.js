@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { getHotspots, getCauses, getRecurringFailures } from '../services/aggregationService.js';
+import { getHotspots, getCauses, getRecurringFailures, getSummary } from '../services/aggregationService.js';
 
 const filterSchema = z.object({
   state: z.string().optional(),
@@ -38,6 +38,19 @@ export async function getRecurringFailuresController(req, res, next) {
   try {
     const filters = filterSchema.parse(req.query);
     const result = await getRecurringFailures(filters);
+    res.status(200).json(result);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid query parameters', details: error.errors });
+    }
+    next(error);
+  }
+}
+
+export async function getSummaryController(req, res, next) {
+  try {
+    const filters = filterSchema.parse(req.query);
+    const result = await getSummary(filters);
     res.status(200).json(result);
   } catch (error) {
     if (error instanceof z.ZodError) {

@@ -1,24 +1,20 @@
 # ARCHITECTURE.md — "Setu" | PS-D02 The Last Inch
 
 > **AI AGENT: READ THIS FILE IN FULL BEFORE WRITING ANY CODE.**
-> This document is the single source of truth. If a request conflicts with this
+> This document is the single source of truth (v2.0). If a request conflicts with this
 > file, follow this file and say so. Do not introduce libraries, services, folders,
 > or patterns not listed here. Do not refactor across module boundaries.
 > When unsure, generate a stub with `// TODO(arch):` and stop.
 
 **Project name:** Setu (सेतु — "bridge")
+**Architecture Version:** v2.0 (Post-Verification Loop Pivot)
 **Duration:** 24 hours. Every decision below is optimised for shipping, not elegance.
 
 ---
 
 ## 0. The One-Paragraph Thesis
 
-A Fair Price Shop dealer, in Telugu or Hindi, describes why a beneficiary's fingerprint
-failed. Setu classifies the cause, looks up the **applicable documented fallback procedure**
-from the Rule Registry (each rule carries its verification status), and reads the exact steps back to the dealer in his language.
-The failure is logged with **zero personally identifiable information** and surfaces on a
-District Supply Officer map as a geographic hotspot. The AI never decides the entitlement;
-it only listens and explains.
+Setu addresses the "last inch" of PDS delivery. Biometric authentication (Fingerprint, Face, Iris) remains **mandatory**. When authentication fails, Setu classifies the failure, provides a controlled **OTP exception flow** authorized by the deterministic Rule Registry, and permits the ration transaction. Crucially, the system requires a **post-transaction biometric re-verification**. If the subsequent verification fails, a `SUSPECTED_IMPERSONATION` flag is raised for human review, creating a controlled evidence loop without making automatic legal conclusions. The AI is bounded strictly to natural language processing and never decides an entitlement.
 
 ---
 
@@ -26,14 +22,24 @@ it only listens and explains.
 
 These are graded by the judges. Violating any one of them fails the project.
 
-| # | Invariant | Enforcement |
+| # | Invariant | Description / Enforcement |
 |---|---|---|
-| I1 | **The LLM never decides a fallback.** It classifies input and rephrases output. Nothing else. | `rulesEngine.js` has zero LLM imports. Enforce in code review. |
-| I2 | **No raw PII is stored, logged, or transmitted.** No Aadhaar numbers, names, phone numbers, biometrics. | `piiFirewall.js` middleware, position 3 in the chain. |
-| I3 | **Every recommendation cites a Rule Registry entry with its verification status.** Response always includes `ruleId`, `citation`, and `verificationStatus`. Only rules marked `VERIFIED` may be described as official. | `rules.json` schema requires all three fields. |
-| I4 | **Human stays in the loop.** The system never approves or denies an entitlement. It only advises the dealer. | No approval endpoints exist. UI copy says "Suggested next step". |
-| I5 | **No claim of live UIDAI/ePoS integration.** All transaction data is synthetic. | Persistent `SYNTHETIC DATA` badge in UI footer. |
-| I6 | **k-anonymity on the officials' map.** Suppress any aggregation bucket with `count < 5`. | `aggregationService.js`. |
+| I1 | **BIOMETRIC MANDATE** | Biometric authentication remains mandatory as the primary authentication mechanism. |
+| I2 | **MULTI-MODAL BIOMETRICS** | The architecture models FINGERPRINT, FACE, and IRIS. |
+| I3 | **CONTROLLED EXCEPTION** | Biometric failure may enter an OTP exception flow only through an explicit Rule Registry entry. |
+| I4 | **RULE AUTHORITY** | Every OTP exception authorization must reference a Rule Registry entry containing `ruleId`, `citation`, `verificationStatus`, and `sourceUrl`. Only `VERIFIED` rules may be described as official. |
+| I5 | **NO RAW BIOMETRIC STORAGE** | The system must not store raw biometric images or templates. Synthetic biometric identifiers/hashes must be used instead. |
+| I6 | **SYNTHETIC DATA** | Biometric data must be synthetic/research-derived and never represented as real Aadhaar biometric data. |
+| I7 | **OTP BOUNDARY** | OTP is an exception mechanism. Its actual authority must be explicitly represented in the Rule Registry and not invented. |
+| I8 | **POST-TRANSACTION RE-VERIFICATION** | Exception transactions enter a later authorized biometric re-verification lifecycle (`MATCH_CONFIRMED`, `MISMATCH_FLAGGED`, `VERIFICATION_PENDING`, `VERIFICATION_UNAVAILABLE`). |
+| I9 | **NO AUTOMATIC GUILT** | A biometric mismatch creates a `SUSPECTED_IMPERSONATION` flag. It does not establish criminal guilt. |
+| I10 | **INVESTIGATION HUMAN CONTROL** | Investigation cases require authorized human review. |
+| I11 | **LAW-ENFORCEMENT BOUNDARY** | The system may represent a referral workflow but must not automatically make legal determinations or indiscriminately transmit biometrics. |
+| I12 | **AI BOUNDARY** | AI cannot determine biometric matches, authorize OTP exceptions, decide entitlements, determine guilt, or refer someone to police. |
+| I13 | **DETERMINISTIC AUTHORITY** | Rules and transaction authorization logic remain deterministic and auditable. |
+| I14 | **PII FIREWALL** | The existing PII firewall remains mandatory. No raw demographic PII is stored. |
+| I15 | **AUDITABILITY** | Transitions must be traceable through non-PII synthetic references. |
+| I16 | **k-anonymity** | Suppress any aggregation bucket with `count < 5` on the officer map. |
 
 ---
 
@@ -184,32 +190,86 @@ setu/
 
 ## 4. DATA MODEL
 
-### `FailureEvent` — the only collection that grows
+### `BiometricVerificationEvent` (PROPOSED)
 
 ```js
 {
+  eventId: String,             // uuid
+  transactionRef: String,      // Link to the proposed RationTransaction
+  modality: String,            // FINGERPRINT | FACE | IRIS
+  stage: String,               // INITIAL | POST_TRANSACTION_REVERIFICATION
+  outcome: String,             // SUCCESS | FAILURE | UNAVAILABLE
+  failureReason: String,       // TIMEOUT | POOR_QUALITY | MISMATCH | UNKNOWN
+  syntheticTemplateHash: String, // Cryptographic identifier, NEVER raw biometric data
+  confidenceScore: Number,
+  deviceRef: String,
+  timestamp: Date
+}
+// MUST NOT store real biometric templates.
+```
+
+### `ExceptionAuthorization` (PROPOSED)
+
+```js
+{
+  authorizationId: String,     // uuid
+  transactionRef: String,
+  method: String,              // OTP
+  ruleApplied: String,         // Reference to Rule Registry authorizing the exception
+  outcome: String,             // VERIFIED | FAILED
+  timestamp: Date
+}
+```
+
+### `InvestigationCase` (PROPOSED)
+
+```js
+{
+  caseId: String,              // uuid
+  transactionRef: String,
+  verificationEventRef: String, // Link to the failed re-verification event
+  reason: String,               // SUSPECTED_IMPERSONATION | REVIEW_REQUIRED
+  status: String,               // OPEN | UNDER_REVIEW | REFERRED_TO_LE | CLOSED
+  evidenceRefs: [String],       // Hashes/IDs of relevant audit logs
+  createdAt: Date,
+  reviewedAt: Date,
+  referralStatus: String
+}
+// Note: SUSPECTED_IMPERSONATION != PROVEN_CRIMINALITY. This entity represents a workflow flag, not a legal conclusion.
+```
+
+### `RationTransaction` (PROPOSED)
+
+```js
+{
+  transactionId: String,       // uuid
+  subjectRef: String,          // non-PII synthetic identifier
+  status: String,              // PENDING_VERIFICATION | COMPLETED | FLAGGED
+  timestamp: Date
+}
+// Conceptually connects: Subject → BiometricVerificationEvent → ExceptionAuthorization → RationTransaction → Post-Verification → InvestigationCase
+```
+
+### `FailureEvent` (Legacy / Advisory Mode)
+*Maintained for the original advisory-only diagnostic tool.*
+```js
+{
   _id: ObjectId,
-  eventId: String,              // uuid v4
-  subjectRef: String,           // optional — server-generated pseudonymous reference:
-                               // HMAC-SHA256(SALT, cardId)[0:16]. Raw value discarded
-                               // immediately. Omit entirely if repeat-failure detection
-                               // does not require beneficiary-level correlation.
-  failureCause: String,         // enum, see §5
-  confidence: Number,           // classifier confidence 0-1
-  ruleApplied: String,          // e.g. "R-BIO-004"
-  resolutionOffered: String,    // enum: FACE_AUTH | OTP | EXCEPTION_REGISTER | NOMINEE | ESCALATE
-  resolutionOutcome: String,    // enum: RESOLVED | REFUSED | PENDING | UNKNOWN
-  shopCode: String,             // "AP-KNL-0142" — synthetic, NOT GPS
+  eventId: String,
+  subjectRef: String,
+  failureCause: String,
+  confidence: Number,
+  ruleApplied: String,
+  resolutionOffered: String,
+  resolutionOutcome: String,
+  shopCode: String,
   district: String,
   state: String,
-  geo: { lat: Number, lng: Number },   // ward centroid, jittered ±500m. NEVER exact.
-  language: String,             // te | hi | en
-  inputMode: String,            // VOICE | FORM
+  geo: { lat: Number, lng: Number },
+  language: String,
+  inputMode: String,
   createdAt: Date
 }
-// mongoose: { strict: true, strictQuery: true }
-// FORBIDDEN FIELDS — never add: aadhaar, name, phone, address, biometricTemplate,
-// rationCardNumber, photo, transcript, rawAudio
 ```
 
 ### `RuleRegistry`
@@ -224,6 +284,7 @@ setu/
   steps: { en: [String], hi: [String], te: [String] },
   citation: String,        // "DFPD Circular No. 15-2/2017-ND-I, Para 4(b)"
   sourceUrl: String,
+  verificationStatus: String, // REQUIRED: VERIFIED | UNVERIFIED
   escalationPath: String,
   active: Boolean
 }
@@ -235,6 +296,24 @@ setu/
 { ts, action, ruleId, outcome, piiRejectionReason, requestHash }
 // NEVER write req.body into this collection.
 ```
+
+---
+
+## 4.5. DATASET ARCHITECTURE (Synthetic Generators)
+
+For the hackathon, we require synthetic biometric authentication data.
+The pipeline is strictly defined as:
+`Public/Research biometric reference data` → `Synthetic dataset generator` → `Synthetic authentication records` → `Setu demo database`
+
+The dataset **must** include the following scenarios:
+1. **Normal biometric success**
+2. **Biometric failure → OTP success → later biometric match** (Confirmed legitimate exception)
+3. **Biometric failure → OTP success → later biometric mismatch → investigation flag** (Suspected impersonation)
+4. **Biometric failure → OTP failure**
+5. **Biometric unavailable**
+6. **Post-verification unavailable**
+
+*All identifiers must be synthetic. The data must never be claimed or represented as actual Aadhaar biometric data.*
 
 ---
 
@@ -365,30 +444,50 @@ Most PII leaks in hackathon projects happen through `console.log`, not the datab
 
 ## 7. API CONTRACT
 
+### Current Endpoints
 ```
 POST /api/v1/diagnose/voice
-  multipart: audio(blob), language(te|hi|en), shopCode
-  → 200 { eventId, detectedCause, confidence, ruleId, fallback,
-          steps[], citation, ttsUrl, escalationPath }
-  → 422 { code: 'PII_DETECTED', field, hint }
-
 POST /api/v1/diagnose/form
-  json: { cause, attempts, age, hasRegisteredMobile, isSeeded,
-          connectivity, deviceOk, shopCode }
-  → 200 { same shape as above }
-  // NOTE: this endpoint bypasses BOTH the LLM and the ASR. It is 100% deterministic.
-  // It is also your demo safety net if the network dies. Build it FIRST.
-
 POST /api/v1/diagnose/:eventId/outcome
-  json: { resolutionOutcome }
-
-GET  /api/v1/insights/hotspots?state=&district=&from=&to=
-  → { buckets: [{ shopCode, district, geo, count, topCause }], suppressedBuckets: n }
-  // buckets with count < 5 are omitted and counted in suppressedBuckets
-
+GET  /api/v1/insights/hotspots
 GET  /api/v1/insights/causes
 GET  /api/v1/insights/recurring-failures
 GET  /api/v1/health
+```
+
+### PROPOSED ENDPOINTS (Awaiting Implementation)
+```
+POST /api/v1/auth/biometric
+  // Record a synthetic biometric attempt.
+  // AGGREGATE RULE:
+  // - FINGERPRINT = SUCCESS AND FACE = SUCCESS AND IRIS = SUCCESS -> AUTHENTICATED
+  // - ANY modality = FAILURE -> BIOMETRIC_FAILED
+  // - NO FAILURE, BUT ANY modality = UNAVAILABLE -> BIOMETRIC_UNAVAILABLE
+  // RESPONSE CONTRACT:
+  // {
+  //   "transactionRef": "TXN-API-SYN-0001",
+  //   "authentication": {
+  //     "status": "AUTHENTICATED | BIOMETRIC_FAILED | BIOMETRIC_UNAVAILABLE",
+  //     "exceptionEligible": true | false
+  //   },
+  //   "modalities": {
+  //     "fingerprint": { "outcome": "SUCCESS | FAILURE | UNAVAILABLE", "failureReason": "..." },
+  //     "face": { "outcome": "SUCCESS | FAILURE | UNAVAILABLE", "failureReason": "..." },
+  //     "iris": { "outcome": "SUCCESS | FAILURE | UNAVAILABLE", "failureReason": "..." }
+  //   },
+  //   "verificationStage": "INITIAL",
+  //   "nextAction": "PROCEED | OTP_EXCEPTION"
+  // }
+POST /api/v1/auth/exception/otp
+  // Record an OTP exception authorization.
+POST /api/v1/auth/reverify
+  // Record the post-transaction biometric re-verification.
+  // -> server-side mismatch evaluation
+  // -> automatic InvestigationCase creation when MISMATCH_FLAGGED
+GET /api/v1/investigations
+  // Retrieve flagged cases for the Officer Dashboard.
+PATCH /api/v1/investigations/:caseId
+  // Update the status of an investigation case.
 ```
 
 ---
@@ -424,49 +523,35 @@ switched off entirely.**
 
 ---
 
-## 9. 24-HOUR EXECUTION PLAN
+## 9. TARGET FLOWS & UI
 
-### What to BUILD vs what to MOCK
+### 9.1 DEALER PWA TARGET FLOW (To be implemented)
+1. Beneficiary arrives.
+2. Mandatory biometric authentication (Fingerprint/Face/Iris attempt).
+3. Failure diagnosis.
+4. Applicable OTP exception rule presented.
+5. OTP verification succeeds.
+6. Controlled transaction occurs.
+7. Transaction marked pending post-verification.
+8. Later biometric re-verification.
+9. Confirmed or flagged outcome is recorded.
 
-| Component | Verdict | Reasoning |
-|---|---|---|
-| Rules engine + rules.json | **BUILD FULLY** | This is the graded core. 8 real rules. |
-| PII firewall + Verhoeff | **BUILD FULLY** | Your differentiator. Demo it live. |
-| Form-based diagnosis flow | **BUILD FULLY** | Works with zero network. Your safety net. |
-| Officer map + aggregation | **BUILD FULLY** | Judges love a map. Cheap to build with Leaflet. |
-| Bhashini ASR | **BUILD, with Web Speech fallback** | Huge credibility. Risky alone. |
-| Gemini classifier | **BUILD** | ~40 lines. Low risk. |
-| TTS playback | **BUILD (browser SpeechSynthesis)** | Native, free, instant. Bhashini TTS only if time. |
-| Synthetic ePoS logs | **MOCK — 2000 seeded events** | Clustered in 3 districts so hotspots are visible. |
-| ePoS device integration | **MOCK — document only** | PS explicitly says non-live. Write the roadmap doc. |
-| Helpline/IVR integration | **MOCK — architecture note** | Describe the pattern; do not build. |
-| Authentication / login | **HARDCODE a demo passcode** | Zero judge credit. |
-| Offline sync queue | **BUILD (localStorage only)** | 30 minutes; big accessibility credit. |
-| Unit tests | **BUILD only for rulesEngine.js** | 10 tests proving deterministic accuracy = evidence for §9 grading. |
-| Docker / CI / CD | **SKIP** | Zero credit. Costs hours. |
-| TypeScript | **SKIP** | Type errors at hour 19 will kill you. |
+*Note: The existing diagnosis frontend can remain unchanged until the backend architecture is frozen and implemented.*
 
-### Hour-by-hour
+### 9.2 OFFICER DASHBOARD TARGET FLOW (To be implemented)
+Future Officer functionality will include tracking:
+- Exception transactions
+- Pending re-verifications
+- Confirmed exceptions
+- Suspected impersonation flags
+- Investigation cases and Referral status
+- Geographic aggregation (where privacy thresholds permit).
 
-| Hours | Task | Done-when |
-|---|---|---|
-| 0–1 | Lock scope. Scaffold monorepo per §3 with Antigravity. Atlas cluster live. `.env` set. | `npm run dev` starts both apps |
-| 1–3 | Write `rules.json` (8 rules + real citations) + `rulesEngine.js` + its unit tests | 10 tests green |
-| 3–4 | `piiFirewall.js` + `verhoeff.js` + `pseudonymiser.js`. Prove with curl. | 422 on a valid Aadhaar, 200 on a random 12-digit |
-| 4–6 | `POST /diagnose/form` end-to-end. Mongoose models. Seed script. | Form input → real fallback JSON |
-| 6–8 | Dealer PWA: FailurePicker + GuidanceCard. Telugu/Hindi i18n. **DEPLOY NOW.** | Live URL works on your phone |
-| 8–10 | Gemini classifier + renderer with guardrails | Free text → correct cause |
-| 10–13 | Bhashini ASR integration + Web Speech fallback + egress scrub | Speak Telugu → correct guidance |
-| 13–15 | Seed 2000 synthetic events. Aggregation service + k-anonymity. | `/insights/hotspots` returns clusters |
-| 15–18 | Officer dashboard: Leaflet map, cause chart, recurring-failure table | Hotspots visibly cluster |
-| 18–19 | Browser TTS playback. Offline queue. Accessibility pass (large text, high contrast). | Works with network throttled |
-| 19–20 | **FREEZE FEATURES.** Bug bash only. | No new files created |
-| 20–21 | Architecture note PDF + INTEGRATION_ROADMAP.md (PS deliverable §11) | Both docs exist |
-| 21–23 | Rehearse the demo **three times**. Record a backup screen capture. | Under 4 minutes, no stumbles |
-| 23–24 | Buffer. Warm the Render instance 10 min before the pitch. | Sleep if you can |
+*Existing k-anonymity rules remain in effect.*
 
-**Hard rule: feature freeze at hour 19.** Teams lose hackathons at hour 22 adding one more
-thing. You will be tempted. Don't.
+### 9.3 EXPLORATORY DEMO: PREDICTIVE ENTITLEMENT
+> **WARNING: NON-PRODUCTION ARCHITECTURE**
+> The "Predictive Entitlement Engine" (Nightly Trust Batch → Trust Token Edge Cache) implemented in Phase 6 is strictly an **exploratory frontend demo**. It is explicitly NOT the target backend architecture. It is retained in the frontend to avoid breaking current presentations, but its components and logic must not be integrated into the backend API or data model unless explicitly authorized later.
 
 ---
 

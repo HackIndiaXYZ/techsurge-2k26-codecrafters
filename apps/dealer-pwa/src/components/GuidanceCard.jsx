@@ -1,9 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSessionStore } from '../store/useSessionStore.js';
 
 export default function GuidanceCard() {
-  const { currentDiagnosis, resetForm, language } = useSessionStore();
+  const { currentDiagnosis, resetForm, language, v2FlowActive, setVerificationState } = useSessionStore();
   const [isContinuing, setIsContinuing] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   if (!currentDiagnosis) return null;
 
@@ -11,6 +19,25 @@ export default function GuidanceCard() {
   
   // Use generic English steps if translation isn't available for demo mode
   const steps = currentDiagnosis.steps[language] || currentDiagnosis.steps;
+
+  const handlePlayTTS = () => {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    
+    // Create text to speak (steps)
+    const textToSpeak = (Array.isArray(steps) ? steps.join('. ') : steps);
+    
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    const langMap = { en: 'en-IN', hi: 'hi-IN', te: 'te-IN' };
+    utterance.lang = langMap[language] || 'en-IN';
+    
+    window.speechSynthesis.speak(utterance);
+  };
+  
+  const handleStopTTS = () => {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+  };
 
   if (isContinuing) {
     return (
@@ -57,7 +84,13 @@ export default function GuidanceCard() {
       </div>
 
       <div className="bg-white px-4 py-4 border-b border-gray-100">
-        <h3 className="text-gray-900 font-bold text-md border-l-4 border-indigo-500 pl-2 mb-2">Applicable documented fallback</h3>
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="text-gray-900 font-bold text-md border-l-4 border-indigo-500 pl-2">Applicable documented fallback</h3>
+          <div className="flex gap-2">
+            <button onClick={handlePlayTTS} className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-bold hover:bg-indigo-200">▶ Play</button>
+            <button onClick={handleStopTTS} className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs font-bold hover:bg-gray-300">■ Stop</button>
+          </div>
+        </div>
         <p className="text-sm font-semibold text-gray-800 mb-3">{currentDiagnosis.fallback}</p>
         
         <ol className="list-decimal pl-5 space-y-2 text-gray-700 text-sm bg-gray-50 p-3 rounded">
@@ -89,12 +122,21 @@ export default function GuidanceCard() {
           🛡️ Failure recorded without beneficiary PII
         </div>
 
-        <button 
-          onClick={() => setIsContinuing(true)}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-sm transition mt-4"
-        >
-          Continue
-        </button>
+        {v2FlowActive && currentDiagnosis.fallback === 'OTP' ? (
+          <button 
+            onClick={() => setVerificationState('OTP_ENTRY')}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-sm transition mt-4"
+          >
+            Proceed to OTP Exception
+          </button>
+        ) : !v2FlowActive && (
+          <button 
+            onClick={() => setIsContinuing(true)}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-sm transition mt-4"
+          >
+            Continue
+          </button>
+        )}
       </div>
     </div>
   );

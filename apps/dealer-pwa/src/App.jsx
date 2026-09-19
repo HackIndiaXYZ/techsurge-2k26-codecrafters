@@ -12,6 +12,8 @@ import OfflineBanner from './components/OfflineBanner.jsx';
 import FailurePicker from './components/FailurePicker.jsx';
 import VoiceRecorder from './components/VoiceRecorder.jsx';
 import GuidanceCard from './components/GuidanceCard.jsx';
+import PredictiveFlow from './components/PredictiveFlow.jsx';
+import SyntheticVerificationFlow from './components/SyntheticVerificationFlow.jsx';
 import { useSessionStore } from './store/useSessionStore.js';
 import en from './i18n/en.json';
 import hi from './i18n/hi.json';
@@ -49,6 +51,10 @@ export default function App() {
               <div className="text-gray-600 font-medium">Checking applicable procedure...</div>
             </div>
           </div>
+        ) : useSessionStore.getState().v2FlowActive ? (
+          <SyntheticVerificationFlow />
+        ) : useSessionStore.getState().predictiveFlowActive ? (
+          <PredictiveFlow />
         ) : currentDiagnosis ? (
           <GuidanceCard />
         ) : inputMode === 'voice' ? (
@@ -62,31 +68,28 @@ export default function App() {
             >
               Use Voice Diagnosis instead
             </button>
-            <div className="mt-8 pt-4 border-t border-gray-200">
+            <div className="mt-8 pt-4 border-t border-gray-200 flex flex-col gap-3">
               <button
                 onClick={() => {
-                  // Direct bypass to the exact deterministic outcome required for the demo
+                  useSessionStore.setState({ predictiveFlowActive: true });
+                }}
+                className="w-full bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-bold py-3 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 border border-emerald-200"
+              >
+                <div className="flex flex-col items-start text-left">
+                  <span>⚡ PREDICTIVE ENTITLEMENT DEMO</span>
+                  <span className="text-[10px] font-normal opacity-80 text-red-600">Exploratory / Deprecated Demo</span>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
                   useSessionStore.setState({
-                    currentDiagnosis: {
-                      detectedCause: 'BIOMETRIC_MISMATCH',
-                      confidence: 0.95,
-                      ruleId: 'R-BIO-001',
-                      verificationStatus: 'Pending verification',
-                      citation: 'DFPD Circular No. 15-2/2017-ND-I, Para 4(b)',
-                      fallback: 'Face authentication (AadhaarFaceRD)',
-                      steps: [
-                        'Ask the beneficiary to retry once.',
-                        'If fingerprint authentication continues to fail, use face authentication if available.',
-                        'Complete the transaction through the available fallback procedure.',
-                        'Escalate if the fallback is unavailable.'
-                      ],
-                      escalationPath: 'Escalate to District Supply Officer + 1967 helpline.'
-                    }
+                    v2FlowActive: true
                   });
                 }}
-                className="w-full bg-fuchsia-100 text-fuchsia-700 hover:bg-fuchsia-200 font-bold py-3 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 border border-fuchsia-300"
+                className="w-full bg-blue-600 text-white hover:bg-blue-700 font-bold py-4 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 border border-blue-800"
               >
-                ▶️ RUN DEMO SCENARIO
+                ▶️ RUN V2 DEMO SCENARIO
               </button>
             </div>
           </div>
