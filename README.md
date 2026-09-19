@@ -470,8 +470,8 @@ node --test tests/piiFirewall.test.js
 | Offline Queue (Service Worker) | ✅ Complete |
 | Synthetic Data Seeder | ✅ Complete |
 | Unit Tests | ✅ Complete — 7 test suites |
-| Bhashini ASR Integration | 🔲 Pending API key |
-| Production Deployment | 🔲 Not deployed |
+| Bhashini ASR Integration |  ✅ Complete|
+| Production Deployment |  ✅ Complete |
 
 ---
 
